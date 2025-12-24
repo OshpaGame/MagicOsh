@@ -33,7 +33,7 @@ namespace MagicOshAdmin {
         }
 
         private void InitializeComponent() {
-            this.Text = "MagicOsh Admin (Ops Center v2.0)";
+            this.Text = "MagicOsh Admin (Ops Center v2.2)";
             this.Size = new Size(1150, 700);
             this.BackColor = Color.FromArgb(10, 10, 20);
             this.ForeColor = Color.White;
@@ -64,44 +64,24 @@ namespace MagicOshAdmin {
             // --- 2. CHAT PANEL ---
             chatPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.Black };
             
-            // Header
-            Panel headerPanel = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
-            
-            lblActiveUser = new Label { Text = "Sin Selección", Dock = DockStyle.Left, Width=350, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.White };
-            
-            // Stats (Centered)
-            lblStats = new Label { Text = "CARGANDO DATOS...", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.Orange, Font = new Font("Consolas", 11, FontStyle.Bold) };
+            // A. STATS BAR (Dedicated Top Strip) - Fixes Resize Issue
+            Panel statsPanel = new Panel { Dock = DockStyle.Top, Height = 25, BackColor = Color.Black };
+            lblStats = new Label { Text = "Sincronizando...", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.Orange, Font = new Font("Consolas", 10, FontStyle.Bold) };
+            statsPanel.Controls.Add(lblStats);
 
-            btnCloseChat = new Button { Text = "FINALIZAR", Dock = DockStyle.Right, Width = 120, BackColor = Color.Crimson, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
+            // B. HEADER BAR (User & Close Button)
+            Panel headerPanel = new Panel { Dock = DockStyle.Top, Height = 55, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
+            
+            btnCloseChat = new Button { Text = "FINALIZAR", Dock = DockStyle.Right, Width = 100, BackColor = Color.Crimson, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
             btnCloseChat.Click += BtnCloseChat_Click;
             btnCloseChat.Visible = false;
 
-            // ORDER MATTERS FOR DOCKING:
-            // 1. Right (Button)
-            // 2. Left (Title)
-            // 3. Fill (Stats - takes remaining center space)
-            headerPanel.Controls.Add(lblStats);     // 3. Fill
-            headerPanel.Controls.Add(lblActiveUser);// 2. Left
-            headerPanel.Controls.Add(btnCloseChat); // 1. Right attached first? No, Add order is Z-order. 
-            // Correct logic: Add items. Dock prioritizes items added *last*? No.
-            // Let's clear and re-add in reverse priority or just use BringToFront.
-            // Actually, simpler:
-            headerPanel.Controls.Clear();
-            headerPanel.Controls.Add(lblStats); // Fill last?
-            headerPanel.Controls.Add(btnCloseChat); // Add these first so they claim edges?
-            headerPanel.Controls.Add(lblActiveUser);
-            // Wait, Docking eats space in order of addition.
-            // WE WANT: 
-            // 1. Button eats Right.
-            // 2. User eats Left.
-            // 3. Stats eats Fill.
-            // SO ADD ORDER: Button, User, Stats.
-            headerPanel.Controls.Clear();
-            headerPanel.Controls.Add(btnCloseChat); // Right
-            headerPanel.Controls.Add(lblActiveUser); // Left
-            headerPanel.Controls.Add(lblStats);      // Fill
+            lblActiveUser = new Label { Text = "Sin Selección", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.White };
+            
+            headerPanel.Controls.Add(lblActiveUser); // Fill takes remaining space
+            headerPanel.Controls.Add(btnCloseChat);  // Right
 
-            // Input Area
+            // C. INPUT AREA
             Panel inputPanel = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
             
             btnAttach = new Button { Text = "📎", Dock = DockStyle.Left, Width = 50, BackColor = Color.FromArgb(60,60,70), FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 14) };
@@ -114,7 +94,6 @@ namespace MagicOshAdmin {
             btnSend.Click += BtnSend_Click;
             txtInput.KeyDown += (s, e) => { if(e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; BtnSend_Click(s, e); } };
 
-            // Wrapper just to give margin to TextBox
             Panel txtWrapper = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10, 5, 10, 5) };
             txtWrapper.Controls.Add(txtInput);
 
@@ -122,7 +101,7 @@ namespace MagicOshAdmin {
             inputPanel.Controls.Add(btnAttach);
             inputPanel.Controls.Add(btnSend);
 
-            // Chat Text Box
+            // D. CHAT TEXT
             txtChat = new RichTextBox { 
                 Dock = DockStyle.Fill, 
                 BackColor = Color.Black, 
@@ -133,9 +112,11 @@ namespace MagicOshAdmin {
                 Padding = new Padding(15)
             };
 
-            chatPanel.Controls.Add(txtChat);
-            chatPanel.Controls.Add(inputPanel); 
-            chatPanel.Controls.Add(headerPanel);
+            // Assemble
+            chatPanel.Controls.Add(txtChat);      // Fill
+            chatPanel.Controls.Add(inputPanel);   // Bottom
+            chatPanel.Controls.Add(headerPanel);  // Top 2
+            chatPanel.Controls.Add(statsPanel);   // Top 1
             
             this.Controls.Add(chatPanel);
             this.Controls.Add(sidebarPanel);
@@ -282,13 +263,9 @@ namespace MagicOshAdmin {
                 try {
                     var users = response.GetValue<List<UserSession>>();
                     this.Invoke((MethodInvoker)delegate {
+                        sessions.Clear(); // CRITICAL: Wipe clean to avoid ghosts, then rebuild from server truth
                         foreach(var u in users) {
                             if(!sessions.ContainsKey(u.SocketId)) sessions.Add(u.SocketId, u);
-                            else {
-                                // Update existing
-                                sessions[u.SocketId].IsOnline = u.IsOnline; 
-                                sessions[u.SocketId].History = u.History;
-                            }
                         }
                         RefreshUserList();
                     });

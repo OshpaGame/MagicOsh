@@ -97,10 +97,22 @@ app.post('/api/auth/login', (req, res) => {
 
 
 // --- REAL-TIME CORE ---
-// Load persisted sessions into memory on start
-let activeChats = getJson(SESSIONS_FILE);
-// Clean up old sockets from memory structure (but allow re-connect)
-Object.keys(activeChats).forEach(k => { activeChats[k].connected = false; });
+let activeChats = getJson(SESSIONS_FILE); // Key: USERNAME (not socket.id)
+
+// Cleanup Stale Sessions (> 24h offline)
+const ONE_DAY = 24 * 60 * 60 * 1000;
+Object.keys(activeChats).forEach(k => {
+    activeChats[k].connected = false;
+    activeChats[k].currentSocketId = null; // Invalidate old socket
+
+    // Purge logic
+    const lastActive = activeChats[k].lastActive || 0;
+    if (Date.now() - lastActive > ONE_DAY) delete activeChats[k];
+});
+saveJson(SESSIONS_FILE, activeChats);
+
+// Map SocketID -> Username for quick lookup
+const socketUserMap = {};
 
 // Helper: Count ONLY connected Web Clients
 function getOnlineWebCount() {
@@ -126,7 +138,13 @@ io.on('connection', (socket) => {
 
             // Send FULL list of sessions (Active + Persisted but Offline)
             const sessionList = Object.values(activeChats);
-            socket.emit('active_users_list', sessionList);
+            socket.emit('active_users_list', sessionList.map(s => ({
+                SocketId: s.username, // PRESERVING APP COMPATIBILITY: ID IS USERNAME NOW
+                Username: s.username,
+                Email: s.email,
+                History: s.history,
+                IsOnline: s.connected
+            })));
 
             // Send Stats
             socket.emit('stats_update', {
@@ -135,27 +153,41 @@ io.on('connection', (socket) => {
             });
         }
         else if (data.type === 'web_client') {
-            const username = data.username || 'Invitado';
+            const username = data.username || 'Invitado_' + socket.id.substr(0, 4);
+            socketUserMap[socket.id] = username;
 
             // Recover or Init Session
-            if (!activeChats[socket.id]) {
-                activeChats[socket.id] = {
-                    socketId: socket.id, // For new users, socketId IS the key
-                    username: username,
+            if (!activeChats[username]) {
+                activeChats[username] = {
+                    username: username, // Primary Key
+                    currentSocketId: socket.id,
                     email: null,
                     history: [],
                     connected: true,
-                    type: 'web_client'
+                    type: 'web_client',
+                    lastActive: Date.now()
                 };
             } else {
-                activeChats[socket.id].connected = true; // Mark back online
-                activeChats[socket.id].username = username;
+                activeChats[username].connected = true; // Mark back online
+                activeChats[username].currentSocketId = socket.id; // Update pointer
+                activeChats[username].lastActive = Date.now();
+                // Send history BACK to user? Optional feature.
             }
             saveJson(SESSIONS_FILE, activeChats); // PERSIST
 
-            // Notify Admin
-            io.to('admin_room').emit('user_connected', activeChats[socket.id]);
-            // Force Stat Update
+            // Notify Admin (Send the Session Object)
+            const sessionObj = activeChats[username];
+            // Mapper for Admin App compatibility (it expects "SocketId" property to route msgs)
+            // But we must be careful: Admin App uses "SocketId" as ID. 
+            // We tell Admin: "Hey, this username is now at this SocketID"
+            io.to('admin_room').emit('user_connected', {
+                SocketId: username, // PRESERVING APP COMPATIBILITY: ID IS USERNAME NOW
+                Username: username,
+                Email: sessionObj.email,
+                History: sessionObj.history,
+                IsOnline: true
+            });
+
             io.to('admin_room').emit('stats_update', {
                 total_visits: stats.total_visits,
                 online_users: getOnlineWebCount()
@@ -164,59 +196,69 @@ io.on('connection', (socket) => {
     });
 
     socket.on('web_message', (msgData) => {
-        if (!activeChats[socket.id]) return;
+        const username = socketUserMap[socket.id];
+        if (!username || !activeChats[username]) return;
 
-        // Update Metadata
-        if (msgData.email) activeChats[socket.id].email = msgData.email;
-        if (msgData.username) activeChats[socket.id].username = msgData.username;
+        const session = activeChats[username];
+        if (msgData.email) session.email = msgData.email;
+        session.lastActive = Date.now();
 
         const timestamp = new Date().toLocaleTimeString();
-        const logEntry = `[${timestamp}] ${msgData.username}: ${msgData.text}`;
+        const logEntry = `[${timestamp}] ${username}: ${msgData.text}`;
 
-        activeChats[socket.id].history.push(logEntry);
-        saveJson(SESSIONS_FILE, activeChats); // PERSIST EVERY MSG
+        session.history.push(logEntry);
+        saveJson(SESSIONS_FILE, activeChats);
 
-        // Forward to Admin
-        const adminPayload = { ...msgData, socketId: socket.id, timestamp };
+        // Forward to Admin (Using username as ID)
+        const adminPayload = { ...msgData, socketId: username, timestamp };
         io.to('admin_room').emit('new_message', adminPayload);
     });
 
     // ADMIN ACTIONS
     socket.on('admin_reply', (replyData) => {
+        // targetSocketId is actually the USERNAME now
+        const username = replyData.targetSocketId;
+        const session = activeChats[username];
         const timestamp = new Date().toLocaleTimeString();
-        const targetId = replyData.targetSocketId;
 
-        if (activeChats[targetId]) {
+        if (session) {
             const msg = `[${timestamp}] Soporte: ${replyData.message}`;
-            activeChats[targetId].history.push(msg);
-            saveJson(SESSIONS_FILE, activeChats); // PERSIST
+            session.history.push(msg);
+            session.lastActive = Date.now();
+            saveJson(SESSIONS_FILE, activeChats);
 
-            io.to(targetId).emit('admin_response', replyData.message);
+            // Route to REAL socket if connected
+            if (session.currentSocketId) {
+                io.to(session.currentSocketId).emit('admin_response', replyData.message);
+            }
         }
     });
 
     // NEW: ADMIN SEND FILE
     socket.on('admin_file', (fileData) => {
-        // fileData: { targetSocketId, fileName, fileBase64 }
+        const username = fileData.targetSocketId; // It's username now
+        const session = activeChats[username];
         const timestamp = new Date().toLocaleTimeString();
-        const targetId = fileData.targetSocketId;
 
-        if (activeChats[targetId]) {
+        if (session) {
             const msg = `[${timestamp}] Soporte envió archivo: ${fileData.fileName}`;
-            activeChats[targetId].history.push(msg);
+            session.history.push(msg);
+            session.lastActive = Date.now();
             saveJson(SESSIONS_FILE, activeChats);
 
-            // Send to Web User
-            io.to(targetId).emit('admin_file_receive', {
-                fileName: fileData.fileName,
-                fileData: fileData.fileBase64
-            });
+            // Route to REAL socket
+            if (session.currentSocketId) {
+                io.to(session.currentSocketId).emit('admin_file_receive', {
+                    fileName: fileData.fileName,
+                    fileData: fileData.fileBase64
+                });
+            }
         }
     });
 
     socket.on('admin_close_chat', (data) => {
-        const targetId = data.targetSocketId;
-        const session = activeChats[targetId];
+        const username = data.targetSocketId;
+        const session = activeChats[username];
 
         if (session) {
             // Archive Logic
@@ -227,31 +269,33 @@ io.on('connection', (socket) => {
 
             fs.writeFile(path.join(CHAT_LOGS_DIR, fileName), fileContent, () => { });
 
-            // Notify User
-            io.to(targetId).emit('admin_response', 'El soporte ha finalizado esta sesión.');
-            io.to('admin_room').emit('chat_closed_confirmed', { socketId: targetId });
+            if (session.currentSocketId) {
+                io.to(session.currentSocketId).emit('admin_response', 'El soporte ha finalizado esta sesión.');
+            }
+            io.to('admin_room').emit('chat_closed_confirmed', { socketId: username });
 
             // DELETE FROM PERSISTENCE
-            delete activeChats[targetId];
+            delete activeChats[username];
             saveJson(SESSIONS_FILE, activeChats);
         }
     });
 
     socket.on('disconnect', () => {
         // Update Stats
-        const stats = getJson(STATS_FILE); // Re-read to ensure latest
-        io.to('admin_room').emit('stats_update', {
-            total_visits: stats.total_visits,
-            online_users: io.engine.clientsCount
-        });
+        const stats = getJson(STATS_FILE);
+        io.to('admin_room').emit('stats_update', { total_visits: stats.total_visits, online_users: getOnlineWebCount() });
 
-        if (activeChats[socket.id]) {
-            activeChats[socket.id].connected = false;
-            // DO NOT DELETE from activeChats yet! Wait for admin to close it.
+        const username = socketUserMap[socket.id];
+        if (username && activeChats[username]) {
+            activeChats[username].connected = false;
+            // activeChats[username].currentSocketId = null; // Don't nullify yet, keep as reference? No, invalid.
+            activeChats[username].lastActive = Date.now();
             saveJson(SESSIONS_FILE, activeChats);
 
-            io.to('admin_room').emit('user_disconnected', { socketId: socket.id });
+            // Notify admin user went offline (Using username ID)
+            io.to('admin_room').emit('user_disconnected', { socketId: username });
         }
+        delete socketUserMap[socket.id];
     });
 });
 
