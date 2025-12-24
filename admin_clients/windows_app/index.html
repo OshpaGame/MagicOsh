@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,7 +38,8 @@
             padding: 2rem 1rem;
             display: flex;
             flex-direction: column;
-            -webkit-app-region: drag; /* Draggable title bar area */
+            -webkit-app-region: drag;
+            /* Draggable title bar area */
         }
 
         .logo {
@@ -60,7 +62,8 @@
             -webkit-app-region: no-drag;
         }
 
-        .nav-item:hover, .nav-item.active {
+        .nav-item:hover,
+        .nav-item.active {
             background: rgba(176, 0, 255, 0.1);
             color: var(--color-neon-primary);
         }
@@ -69,7 +72,8 @@
         .main-panel {
             padding: 20px;
             overflow-y: auto;
-            margin-top: 30px; /* Space for window controls */
+            margin-top: 30px;
+            /* Space for window controls */
         }
 
         .dashboard-grid {
@@ -80,7 +84,7 @@
 
         .card {
             background: var(--color-bg-surface);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             padding: 1.5rem;
             border-radius: 16px;
         }
@@ -100,10 +104,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="sidebar">
         <div class="logo">Magic<span>Osh</span> Admin</div>
-        
+
         <div class="nav-item active">
             <span>💬</span> Mensajes
         </div>
@@ -138,8 +143,10 @@
                     </div>
                 </div>
                 <div style="margin-top: 1rem;">
-                    <input type="text" placeholder="Responder..." style="width: 70%; padding: 10px; background: #050510; border:1px solid #333; color: white;">
-                    <button style="padding: 10px 20px; background: var(--color-neon-primary); border:none; color: white; cursor: pointer;">Enviar</button>
+                    <input type="text" id="replyInput" placeholder="Responder..."
+                        style="width: 70%; padding: 10px; background: #050510; border:1px solid #333; color: white;">
+                    <button id="btnSend"
+                        style="padding: 10px 20px; background: var(--color-neon-primary); border:none; color: white; cursor: pointer;">Enviar</button>
                 </div>
             </div>
 
@@ -152,9 +159,94 @@
         </div>
     </div>
 
+    <!-- Socket.io Library -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Here we will add the socket client logic later to connect to backend
-        console.log('Admin Panel Loaded');
+        const messagesList = document.getElementById('messagesList');
+        const replyInput = document.getElementById('replyInput');
+        const btnSend = document.getElementById('btnSend');
+
+        let currentTargetSocketId = null;
+
+        // Connect to Backend
+        // URL PLACEHOLDER: Change 'http://localhost:3000' to your Render URL in production!
+        const socket = io('http://localhost:3000');
+
+        socket.on('connect', () => {
+            console.log('Admin Connected to Server');
+            socket.emit('identify', { type: 'admin_windows' });
+        });
+
+        // Receiving Messages
+        socket.on('new_message', (data) => {
+            addMessageToFeed(data);
+            // Auto-select latest user to reply to
+            currentTargetSocketId = data.socketId;
+            replyInput.placeholder = `Responder a ${data.username}...`;
+        });
+
+        // Sending Replies
+        btnSend.addEventListener('click', sendReply);
+        replyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendReply();
+        });
+
+        function sendReply() {
+            const text = replyInput.value.trim();
+            if (!text || !currentTargetSocketId) return;
+
+            // Emit to server
+            socket.emit('admin_reply', {
+                targetSocketId: currentTargetSocketId,
+                message: text
+            });
+
+            // Show my reply in feed (optional, or separate sent/received lists)
+            addMessageToFeed({
+                username: 'Yo (Admin)',
+                text: text,
+                timestamp: new Date().toISOString(),
+                isMe: true
+            });
+
+            replyInput.value = '';
+        }
+
+        function addMessageToFeed(data) {
+            const div = document.createElement('div');
+            div.className = 'incoming-msg';
+
+            if (data.isMe) {
+                div.style.borderLeftColor = 'var(--color-neon-primary)';
+                div.style.background = 'rgba(176, 0, 255, 0.1)';
+            } else {
+                // Clicking a message selects that user to reply
+                div.style.cursor = 'pointer';
+                div.onclick = () => {
+                    currentTargetSocketId = data.socketId;
+                    replyInput.placeholder = `Responder a ${data.username}...`;
+                    replyInput.focus();
+                };
+            }
+
+            const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${data.username}</strong>
+                    <small style="opacity:0.7">${time}</small>
+                </div>
+                <div style="margin-top: 5px;">${data.text}</div>
+            `;
+
+            messagesList.appendChild(div);
+            // Scroll to bottom
+            const mainPanel = document.querySelector('.main-panel');
+            mainPanel.scrollTop = mainPanel.scrollHeight;
+        }
+
+        console.log('Admin Panel Logic Loaded');
     </script>
 </body>
+
 </html>
