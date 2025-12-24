@@ -15,7 +15,7 @@ app.use(express.json());
 
 // Serve Static Files (The Website)
 // This allows Render to host BOTH the site and the API/Socket
-app.use(express.static(path.join(__dirname, '../public_html')));
+app.use(express.static(path.join(__dirname, 'public_html')));
 
 // Socket.io Setup
 const io = new Server(server, {
@@ -88,8 +88,35 @@ async function sendNotificationEmail(data) {
     }
 }
 
+// --- Keep-Alive Mechanism (Anti-Sleep for Render Free Tier) ---
+app.get('/health', (req, res) => res.send('I am alive!'));
+
+function keepAlive() {
+    const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+
+    // Only ping if we are on Render (to avoid noise in local dev) or if forced
+    if (process.env.RENDER_EXTERNAL_URL) {
+        console.log(`Sending Keep-Alive ping to ${url}/health`);
+        http.get(`${url}/health`, (res) => {
+            if (res.statusCode === 200) {
+                console.log('Keep-Alive success');
+            } else {
+                console.error(`Keep-Alive failed: ${res.statusCode}`);
+            }
+        }).on('error', (err) => {
+            console.error('Keep-Alive error:', err.message);
+        });
+    }
+}
+
+// Ping every 14 minutes (840000 ms) to beat the 15 min sleep timer
+setInterval(keepAlive, 840000);
+
 // Start Server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`MagicOsh Server running on port ${PORT}`);
+    // Initial ping
+    setTimeout(keepAlive, 5000);
 });
+

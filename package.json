@@ -1,6 +1,6 @@
 {
     "name": "magicosh-server",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "MagicOsh Backend Server (Render)",
     "main": "server.js",
     "scripts": {

@@ -1,0 +1,4 @@
+admin_clients/
+*.pdf
+.gitignore
+README.md

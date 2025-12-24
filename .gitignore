@@ -1,3 +1,11 @@
 node_modules/
 .DS_Store
 *.log
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+admin_clients/windows_app_native/bin/
+admin_clients/windows_app_native/obj/
+.expo/
