@@ -457,6 +457,12 @@
                 const label = isBin ? "Archivo Binario" : "Código Fuente";
                 const color = isBin ? "orange" : "cyan";
 
+                // Safe Download URL
+                let downloadUrl = post.scriptData.code;
+                if (!isBin) {
+                    downloadUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(post.scriptData.code)}`;
+                }
+
                 // Compact Header (Always Visible)
                 scriptHtml = `
                 <div style="margin-top:10px; background:#1a1a1a; padding:10px; border-radius:8px; border:1px solid #333; display:flex; align-items:center; justify-content:space-between;">
@@ -471,7 +477,7 @@
                         ${!isBin ?
                         `<button onclick="toggleCode('${post.id}')" class="btn btn-sm" style="background:#333; border:1px solid #555; color:white; cursor:pointer;">👁️ Ver</button>`
                         : ''}
-                        <a href="${post.scriptData.code}" download="${post.scriptData.fileName}" class="btn btn-primary btn-sm" style="text-decoration:none; display:flex; align-items:center;">⬇️</a>
+                        <a href="${downloadUrl}" download="${post.scriptData.fileName}" class="btn btn-primary btn-sm" style="text-decoration:none; display:flex; align-items:center;">⬇️</a>
                     </div>
                 </div>`;
 
