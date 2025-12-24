@@ -4,11 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MagicOsh | Scripts de Videojuegos Premium</title>
+    <title>MagicOsh - Scripts de Alto Rendimiento</title>
+    <meta name="description" content="Domina tus videojuegos con los mejores scripts de MagicOsh.">
 
-    <!-- Meta SEO -->
-    <meta name="description"
-        content="La mejor tienda de scripts para desarrolladores de videojuegos. Código limpio, optimizado y listo para usar.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/variables.css">
@@ -17,224 +21,175 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/auth.css">
 
-    <!-- Icons (Optional, using generic classes for now, or could use FontAwesome via CDN if user allowed internet access for it but keeping local safe) -->
+    <style>
+        /* Highlight Classes */
+        .highlight-text {
+            background: linear-gradient(90deg, var(--color-neon-primary), var(--color-neon-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
     <!-- Header -->
     <header class="site-header">
-        <div class="container">
+        <div class="container header-content">
             <a href="#" class="logo">Magic<span>Osh</span></a>
 
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link active">Inicio</a></li>
-                    <li><a href="#store" class="nav-link">Tienda</a></li>
-                    <li><a href="#messaging" class="nav-link">Mensajes</a></li>
-                    <li><a href="#giveaway" class="nav-link">Zona Privada</a></li>
-                </ul>
+            <nav class="main-nav">
+                <a href="#">Inicio</a>
+                <a href="#store">Tienda</a>
+                <!-- Link to Dashboard/Profile handled by auth.js now -->
+                <a href="dashboard.html" id="userMenu" style="display:none;">Mi Dashboard</a>
             </nav>
 
-            <a href="#store" class="btn btn-primary">Ver Scripts</a>
-
-            <!-- Auth Buttons / User Menu -->
-            <div class="auth-controls" style="margin-left: 2rem;">
-                <a href="login.html" id="btnLogin" class="btn btn-secondary btn-sm">Iniciar Sesión</a>
-                <div id="userMenu" class="user-menu" style="display: none; position: relative;">
-                    <span id="userDisplayName" style="color: #fff; cursor: pointer; font-weight: 600;">Usuario</span>
-                    <div class="dropdown-menu">
-                        <a href="dashboard.html">Mi Dashboard</a>
-                        <a href="#" id="btnLogout" style="color: var(--color-neon-accent);">Cerrar Sesión</a>
-                    </div>
-                </div>
+            <div class="header-actions">
+                <a href="#store" class="btn btn-primary btn-glow">VER SCRIPTS</a>
+                <a href="login.html" id="btnLogin" class="btn btn-secondary">Login</a>
+                <div id="userAvatar" class="avatar-circle" style="display:none; cursor:pointer;"
+                    onclick="window.location.href='dashboard.html'"></div>
             </div>
         </div>
     </header>
 
-    <!-- INLINE AUTH CHECK (Anti-Flicker & Fallback) -->
+    <!-- Inline script for immediate Auth State -->
     <script>
         (function () {
-            try {
-                const session = localStorage.getItem('magicOshSession');
-                if (session) {
-                    const btn = document.getElementById('btnLogin');
-                    const menu = document.getElementById('userMenu');
-                    const name = document.getElementById('userDisplayName');
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            const btnLogin = document.getElementById('btnLogin');
+            const userAvatar = document.getElementById('userAvatar');
+            const userMenu = document.getElementById('userMenu');
 
-                    if (btn) btn.style.display = 'none';
-                    if (menu) menu.style.display = 'block';
-
-                    // Pre-render avatar if possible
-                    const user = JSON.parse(session);
-                    if (name && user.username) {
-                        name.innerHTML = '<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border: 1px solid rgba(255,255,255,0.5); cursor:pointer; display:flex;" onclick="window.location.href=\'dashboard.html\'">' + user.username.charAt(0).toUpperCase() + '</div>';
-                    }
+            if (session) {
+                if (btnLogin) btnLogin.style.display = 'none';
+                if (userAvatar) {
+                    userAvatar.style.display = 'flex'; // Flex to center initial
+                    userAvatar.textContent = session.username.charAt(0).toUpperCase();
                 }
-            } catch (e) { console.error("Inline Auth Check Error", e); }
+                if (userMenu) userMenu.style.display = 'inline-block';
+            }
         })();
     </script>
 
-    <!-- Auth Modals -->
-    <!-- Auth Modals removed. Using login.html page now. -->
-
-    <!-- Profile Modal -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content profile-content">
-            <span class="close-profile">&times;</span>
-
-            <div class="profile-header">
-                <div id="profileAvatar" class="avatar-circle">M</div>
-                <h3>Mi Perfil</h3>
-            </div>
-
-            <div class="profile-details">
-                <div class="detail-item">
-                    <label>Usuario</label>
-                    <p id="profileUsername">--</p>
-                </div>
-                <div class="detail-item">
-                    <label>Correo</label>
-                    <p id="profileEmail">--</p>
-                </div>
-                <div class="detail-item">
-                    <label>Fecha Nacimiento</label>
-                    <p id="profileDob">--</p>
-                </div>
-                <div class="detail-item">
-                    <label>Miembro Desde</label>
-                    <p id="profileJoined">2026</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
     <main>
         <!-- Hero Section -->
         <section class="hero-section">
-            <div class="hero-glow-back"></div>
             <div class="container hero-content">
-                <h1 class="hero-title">Domina el Código <br><span class="text-gradient">Crea Leyendas</span></h1>
-                <p class="hero-subtitle">Scripts de alto rendimiento para desarrolladores de videojuegos novatos y
-                    expertos. Escala tu proyecto hoy mismo.</p>
-                <div class="hero-buttons">
-                    <a href="#store" class="btn btn-primary">Explorar Tienda</a>
-                    <a href="#giveaway" class="btn btn-secondary">Canjear Regalo</a>
+                <div class="hero-text-wrapper">
+                    <h1 class="hero-title">DOMINA EL CÓDIGO <br> <span class="highlight-text">CREA LEYENDAS</span></h1>
+                    <p class="hero-subtitle">Scripts de alto rendimiento para desarrolladores de videojuegos novatos y
+                        expertos. Escala tu proyecto hoy mismo.</p>
+                    <div class="hero-buttons">
+                        <a href="#store" class="btn btn-primary btn-lg">EXPLORAR TIENDA</a>
+                        <a href="#giveaway" class="btn btn-secondary btn-lg">CANJEAR REGALO</a>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Value Proposition / About (Placeholder) -->
-        <section class="container" style="padding: 4rem 0; text-align: center;">
-            <h2 style="margin-bottom: 2rem;">¿Por qué MagicOsh?</h2>
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: left;">
-
-                <div
-                    style="background: var(--color-bg-surface); padding: 2rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color: var(--color-neon-secondary); margin-bottom: 1rem;">Calidad Premium</h3>
-                    <p style="color: var(--color-text-muted);">Cada script está optimizado al máximo, comentado y listo
-                        para integración en producción.</p>
+        <!-- Features / Why Us -->
+        <section class="section-padding" style="background: var(--color-bg-surface);">
+            <div class="container">
+                <div class="section-title">
+                    <h2>¿POR QUÉ MAGICOSH?</h2>
                 </div>
-
-                <div
-                    style="background: var(--color-bg-surface); padding: 2rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color: var(--color-neon-primary); margin-bottom: 1rem;">Soporte Directo</h3>
-                    <p style="color: var(--color-text-muted);">Habla directamente conmigo a través del centro de
-                        mensajes integrado.</p>
+                <div class="grid-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Optimización Extrema</h3>
+                        <p>Código limpio y eficiente que no ralentiza tu juego ni un milisegundo.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Seguridad Total</h3>
+                        <p>protección anti-tamper y encriptación de grado militar para tus assets.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤝</div>
+                        <h3>Soporte 24/7</h3>
+                        <p>Nuestros expertos están listos para ayudarte a integrar cualquier script.</p>
+                    </div>
                 </div>
-
-                <div
-                    style="background: var(--color-bg-surface); padding: 2rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color: var(--color-neon-accent); margin-bottom: 1rem;">Comunidad & Regalos</h3>
-                    <p style="color: var(--color-text-muted);">Accede a scripts exclusivos y regalos a través de
-                        nuestros sorteos y zona privada.</p>
-                </div>
-
             </div>
         </section>
-
 
         <!-- Store Section -->
-        <section id="store" class="store-section" style="padding: 4rem 0;">
+        <section id="store" class="section-padding">
             <div class="container">
-                <div style="text-align: center; margin-bottom: 3rem;">
-                    <h2>Catálogo <span class="text-gradient">Premium</span></h2>
-                    <p style="color: var(--color-text-muted);">Herramientas profesionales para llevar tu juego al
-                        siguiente nivel.</p>
+                <div class="section-title">
+                    <h2>TIENDA DE SCRIPTS</h2>
                 </div>
-
-                <div class="store-grid">
+                <!-- Products Grid -->
+                <div class="grid-3">
                     <!-- Product 1 -->
                     <div class="product-card">
-                        <span class="product-badge">Top Ventas</span>
-                        <div class="product-icon">⚔️</div>
-                        <h3 class="product-title">Sistema de Combate RPG</h3>
-                        <p class="product-desc">Sistema completo de ataques, combos, daño y estados alterados. Incluye
-                            animaciones base.</p>
-                        <div class="product-price">$14.99 <span>/ licencia</span></div>
-                        <button class="btn btn-primary buy-btn" data-product="Sistema de Combate RPG">Comprar
-                            Ahora</button>
+                        <div class="product-image">
+                            <span>FPS CONTROLLER</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Pack Movimiento FPS</h3>
+                            <p>Controlador de personaje fluido con salto, agachado y slide.</p>
+                            <div class="product-meta">
+                                <span class="price">$15.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn" data-product="FPS Pack">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
-
                     <!-- Product 2 -->
                     <div class="product-card">
-                        <span class="product-badge" style="background: var(--color-neon-secondary);">Esencial</span>
-                        <div class="product-icon">🎒</div>
-                        <h3 class="product-title">Inventario Infinito Pro</h3>
-                        <p class="product-desc">Gestión de items, crafting, drag & drop y guardado automático
-                            local/nube.</p>
-                        <div class="product-price">$9.99 <span>/ licencia</span></div>
-                        <button class="btn btn-primary buy-btn" data-product="Inventario Infinito Pro">Comprar
-                            Ahora</button>
+                        <div class="product-image" style="background: linear-gradient(45deg, #00f3ff, #0066ff);">
+                            <span>RPG SYSTEM</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Sistema RPG Core</h3>
+                            <p>Inventario, Stats y Quest System listo para usar.</p>
+                            <div class="product-meta">
+                                <span class="price">$35.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn" data-product="RPG Core">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
-
                     <!-- Product 3 -->
                     <div class="product-card">
-                        <span class="product-badge" style="background: var(--color-neon-success);">Nuevo</span>
-                        <div class="product-icon">🤖</div>
-                        <h3 class="product-title">AI Enemy Brain</h3>
-                        <p class="product-desc">Inteligencia artificial adaptativa. Tus enemigos aprenden del jugador.
-                            Pathfinding 3D incluido.</p>
-                        <div class="product-price">$24.99 <span>/ licencia</span></div>
-                        <button class="btn btn-primary buy-btn" data-product="AI Enemy Brain">Comprar Ahora</button>
+                        <div class="product-image" style="background: linear-gradient(45deg, #ff0055, #ff00cc);">
+                            <span>MULTIPLAYER</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Netcode Starter</h3>
+                            <p>La base perfecta para tu juego multijugador. Sincronización lag-free.</p>
+                            <div class="product-meta">
+                                <span class="price">$50.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn"
+                                    data-product="Netcode Starter">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Messaging is now Global Widget -->
-
-        <!-- Private Zone / Giveaway Section -->
-        <section id="giveaway" class="giveaway-section" style="padding: 6rem 0; position: relative;">
-            <div class=""
-                style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, transparent, var(--color-bg-surface)); opacity: 0.5; z-index: -1;">
-            </div>
-            <div class="container" style="max-width: 600px; text-align: center;">
-                <div class="giveaway-card"
-                    style="background: rgba(0,0,0,0.5); padding: 3rem; border-radius: var(--border-radius-lg); border: 1px solid var(--color-neon-accent); box-shadow: 0 0 30px rgba(255, 0, 85, 0.1);">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                    <h2 style="margin-bottom: 1rem;">Zona <span style="color: var(--color-neon-accent);">Privada</span>
-                    </h2>
-                    <p style="color: var(--color-text-muted); margin-bottom: 2rem;">Introduce tu código de acceso único
-                        para desbloquear scripts exclusivos de regalo.</p>
-
-                    <form id="accessForm" class="access-form" style="display: flex; flex-direction: column; gap: 1rem;">
-                        <input type="text" id="accessCode" placeholder="XXXX-XXXX-XXXX" maxlength="14"
-                            style="background: transparent; border: 2px solid var(--color-neon-accent); color: #fff; padding: 1rem; text-align: center; font-size: 1.2rem; letter-spacing: 4px; border-radius: var(--border-radius-sm); font-family: var(--font-display);">
-                        <button type="submit" class="btn btn-secondary"
-                            style="border-color: var(--color-neon-accent); color: var(--color-neon-accent);">Desbloquear
-                            Contenido</button>
-                    </form>
-                    <div id="accessMessage" class="access-message" style="margin-top: 1rem; min-height: 20px;"></div>
+        <!-- Giveaway / Private Zone -->
+        <section id="giveaway" class="section-padding"
+            style="background: linear-gradient(to top, var(--color-bg-deep), var(--color-bg-surface));">
+            <div class="container">
+                <div class="cta-box">
+                    <div class="cta-content">
+                        <h2>COMUNIDAD & REGALOS</h2>
+                        <p>Accede a scripts exclusivos y regalos a través de nuestros sorteos y zona privada.</p>
+                        <form id="accessForm" class="access-form">
+                            <input type="text" id="accessCode" placeholder="Ingresa tu código de acceso">
+                            <button type="submit" class="btn btn-primary">ACCEDER</button>
+                        </form>
+                        <p id="accessMessage" style="margin-top: 1rem; font-weight: bold;"></p>
+                    </div>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <!-- Footer -->
     <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
@@ -262,7 +217,7 @@
     </footer>
 
     <!-- GLOBAL CHAT WIDGET (Static HTML) -->
-    <div id="magicOshChatBubble">💬</div>
+    <div id="magicOshChatBubble" onclick="toggleChatFallback()">💬</div>
 
     <div id="magicOshChatWindow">
         <div class="chat-widget-header">
@@ -294,8 +249,28 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Fallback Toggle Function - GUARANTEED TO WORK
+        function toggleChatFallback() {
+            const win = document.getElementById('magicOshChatWindow');
+            const bubble = document.getElementById('magicOshChatBubble');
+            if (win.style.opacity === '1') {
+                // Close
+                win.style.opacity = '0';
+                win.style.transform = 'translateY(20px) scale(0.95)';
+                win.style.pointerEvents = 'none';
+                bubble.innerText = '💬';
+            } else {
+                // Open
+                win.style.opacity = '1';
+                win.style.transform = 'translateY(0) scale(1)';
+                win.style.pointerEvents = 'auto';
+                bubble.innerText = 'X';
+            }
+        }
+    </script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=5"></script>
+    <script type="module" src="js/app.js?v=6"></script>
 </body>
 
 </html>
