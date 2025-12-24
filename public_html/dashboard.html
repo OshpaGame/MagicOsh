@@ -159,25 +159,8 @@
         </div>
     </main>
 
-    <script>
-        // Simple Dashboard Logic
-        const session = JSON.parse(localStorage.getItem('magicOshSession'));
-        if (!session) {
-            window.location.href = 'login.html';
-        } else {
-            document.getElementById('dashUsername').textContent = 'Hola, ' + session.username;
-            document.getElementById('dashAvatar').textContent = session.username.charAt(0).toUpperCase();
-        }
-
-        document.getElementById('btnLogout').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('magicOshSession');
-            window.location.href = 'index.html';
-        });
-    </script>
-
     <!-- GLOBAL CHAT WIDGET -->
-    <div id="magicOshChatBubble">💬</div>
+    <div id="magicOshChatBubble" onclick="toggleChatFallback()">💬</div>
 
     <div id="magicOshChatWindow">
         <div class="chat-widget-header">
@@ -195,7 +178,8 @@
         </div>
 
         <div class="chat-widget-input">
-            <form id="chatWidgetForm">
+            <!-- FORM ACTION BLINDADO -->
+            <form id="chatWidgetForm" action="javascript:void(0);">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
                 <button type="submit">➤</button>
             </form>
@@ -209,8 +193,57 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Simple Dashboard Auth Logic
+        (function () {
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                // Update Dashboard UI
+                if (document.getElementById('dashUsername'))
+                    document.getElementById('dashUsername').textContent = 'Hola, ' + session.username;
+                if (document.getElementById('dashAvatar'))
+                    document.getElementById('dashAvatar').textContent = session.username.charAt(0).toUpperCase();
+
+                // Update Chat Widget UI
+                const widgetOverlay = document.getElementById('widgetLoginOverlay');
+                const widgetHeader = document.querySelector('.chat-widget-header h4');
+
+                if (widgetOverlay) widgetOverlay.style.display = 'none';
+                if (widgetHeader) widgetHeader.textContent = `Chat de ${session.username}`;
+            }
+
+            document.getElementById('btnLogout').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('magicOshSession');
+                window.location.href = 'index.html';
+            });
+        })();
+
+        // Chat Toggle Helper
+        function toggleChatFallback() {
+            const win = document.getElementById('magicOshChatWindow');
+            const bubble = document.getElementById('magicOshChatBubble');
+            const isVisible = win.style.opacity === '1';
+
+            if (isVisible) {
+                win.classList.remove('active');
+                win.style.opacity = '0';
+                win.style.transform = 'translateY(20px) scale(0.95)';
+                win.style.pointerEvents = 'none';
+                bubble.innerText = '💬';
+            } else {
+                win.classList.add('active');
+                win.style.opacity = '1';
+                win.style.transform = 'translateY(0) scale(1)';
+                win.style.pointerEvents = 'auto';
+                bubble.innerText = 'X';
+            }
+        }
+    </script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=5"></script>
+    <script type="module" src="js/app.js?v=6"></script>
 </body>
 
 </html>
