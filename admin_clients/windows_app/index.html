@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicOsh Panel - Admin</title>
+    <style>
+        /* Import variables directly for now to keep it self-contained or link relative if preferred */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Outfit:wght@300;400;600&display=swap');
+
+        :root {
+            --color-bg-deep: #050510;
+            --color-bg-surface: #0a0a1a;
+            --color-neon-primary: #b000ff;
+            --color-neon-secondary: #00f3ff;
+            --color-text-main: #e0e0e0;
+            --font-main: 'Outfit', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+        }
+
+        body {
+            background-color: var(--color-bg-deep);
+            color: var(--color-text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--color-bg-surface);
+            border-right: 1px solid rgba(176, 0, 255, 0.1);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            -webkit-app-region: drag; /* Draggable title bar area */
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .nav-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            -webkit-app-region: no-drag;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(176, 0, 255, 0.1);
+            color: var(--color-neon-primary);
+        }
+
+        /* Main Content */
+        .main-panel {
+            padding: 20px;
+            overflow-y: auto;
+            margin-top: 30px; /* Space for window controls */
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--color-bg-surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--color-neon-secondary);
+        }
+
+        /* Chat Specifics */
+        .incoming-msg {
+            background: rgba(0, 243, 255, 0.1);
+            padding: 10px;
+            border-left: 3px solid var(--color-neon-secondary);
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">Magic<span>Osh</span> Admin</div>
+        
+        <div class="nav-item active">
+            <span>💬</span> Mensajes
+        </div>
+        <div class="nav-item">
+            <span>📦</span> Ventas
+        </div>
+        <div class="nav-item">
+            <span>👥</span> Usuarios
+        </div>
+        <div class="nav-item">
+            <span>⚙️</span> Config
+        </div>
+    </div>
+
+    <div class="main-panel">
+        <header style="margin-bottom: 2rem;">
+            <h2>Panel de Control</h2>
+            <p>Conectado como <span style="color: var(--color-neon-primary);">OshpaDev</span></p>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card" style="grid-column: span 2;">
+                <h3>Mensajes Recientes</h3>
+                <div id="messagesList">
+                    <div class="incoming-msg">
+                        <strong>Web User (Gamer1):</strong> Hola, ¿cuánto cuesta el script de inventario?<br>
+                        <small style="opacity:0.7">Hace 2 min</small>
+                    </div>
+                    <div class="incoming-msg">
+                        <strong>Web User (Anon):</strong> No puedo descargar el regalo.<br>
+                        <small style="opacity:0.7">Hace 15 min</small>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <input type="text" placeholder="Responder..." style="width: 70%; padding: 10px; background: #050510; border:1px solid #333; color: white;">
+                    <button style="padding: 10px 20px; background: var(--color-neon-primary); border:none; color: white; cursor: pointer;">Enviar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Estado del Sistema</h3>
+                <p>Web Server: <span style="color: #00ff9d">ONLINE</span></p>
+                <p>Database: <span style="color: #00ff9d">ONLINE</span></p>
+                <p>Usuarios Activos: 12</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Here we will add the socket client logic later to connect to backend
+        console.log('Admin Panel Loaded');
+    </script>
+</body>
+</html>

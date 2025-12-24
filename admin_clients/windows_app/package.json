@@ -1,0 +1,15 @@
+{
+  "name": "magicosh-admin-panel",
+  "version": "1.0.0",
+  "description": "Panel de Control de Windows para MagicOsh",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["admin", "magicosh"],
+  "author": "OshpaDev",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^28.0.0"
+  }
+}
