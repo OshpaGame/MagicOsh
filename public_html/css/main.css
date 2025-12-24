@@ -58,6 +58,30 @@ img {
     text-shadow: 0 0 20px rgba(176, 0, 255, 0.2);
 }
 
+.section-padding {
+    padding: var(--spacing-lg) 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    text-shadow: var(--glow-primary);
+}
+
+/* Grid Layouts - THE MISSING PIECE */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Button Styles */
 .btn {
     display: inline-block;
     padding: 0.8rem 2rem;
@@ -97,6 +121,28 @@ img {
     box-shadow: 0 0 10px var(--color-neon-secondary) inset;
 }
 
+/* Card Styles (Used in Grid) */
+.feature-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-normal);
+    text-align: center;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-neon-secondary);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
 /* Store Styles */
 .store-grid {
     display: grid;
@@ -107,7 +153,7 @@ img {
 
 .product-card {
     background: var(--color-bg-surface);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius-md);
     padding: 2rem;
     position: relative;
@@ -142,6 +188,20 @@ img {
     color: var(--color-neon-secondary);
 }
 
+.product-image {
+    height: 150px;
+    background: #222;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
 .product-title {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
@@ -155,14 +215,43 @@ img {
     flex-grow: 1;
 }
 
-.product-price {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    color: #fff;
-    margin-bottom: 1.5rem;
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
 }
 
-.product-price span {
-    font-size: 1rem;
-    color: var(--color-text-muted);
+.product-price {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+/* CTA Box */
+.cta-box {
+    background: rgba(176, 0, 255, 0.1);
+    border: 1px solid var(--color-neon-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.access-form {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.access-form input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    color: #fff;
+    min-width: 300px;
 }
