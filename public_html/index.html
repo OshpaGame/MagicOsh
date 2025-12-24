@@ -42,7 +42,6 @@
             <nav class="main-nav">
                 <a href="#">Inicio</a>
                 <a href="#store">Tienda</a>
-                <!-- Link to Dashboard/Profile handled by auth.js now -->
                 <a href="dashboard.html" id="userMenu" style="display:none;">Mi Dashboard</a>
             </nav>
 
@@ -65,13 +64,26 @@
             const userAvatar = document.getElementById('userAvatar');
             const userMenu = document.getElementById('userMenu');
 
+            // Chat Widget Immediate Fix
+            const widgetOverlay = document.getElementById('widgetLoginOverlay');
+            const widgetHeader = document.querySelector('.chat-widget-header h4');
+
             if (session) {
+                // Header Logic
                 if (btnLogin) btnLogin.style.display = 'none';
                 if (userAvatar) {
-                    userAvatar.style.display = 'flex'; // Keep flex for centering
+                    userAvatar.style.display = 'flex';
                     userAvatar.textContent = session.username.charAt(0).toUpperCase();
                 }
                 if (userMenu) userMenu.style.display = 'inline-block';
+
+                // Widget Logic (Hide Overlay Immediately if Logged In)
+                if (widgetOverlay) {
+                    widgetOverlay.style.display = 'none';
+                }
+                if (widgetHeader) {
+                    widgetHeader.textContent = `Chat de ${session.username}`;
+                }
             }
         })();
     </script>
@@ -252,12 +264,11 @@
 
     <!-- Scripts -->
     <script>
-        // Fallback Toggle Function
+        // Fallback Toggle Function - GUARANTEED TO WORK
         function toggleChatFallback() {
             const win = document.getElementById('magicOshChatWindow');
             const bubble = document.getElementById('magicOshChatBubble');
 
-            // Inline check
             const isVisible = win.style.opacity === '1';
 
             if (isVisible) {
