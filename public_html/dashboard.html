@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/auth.css"> <!-- Reusing avatar styles -->
+    <link rel="stylesheet" href="css/chat_widget.css">
     <style>
         body {
             background-color: var(--color-bg-deep);
@@ -174,9 +175,42 @@
             window.location.href = 'index.html';
         });
     </script>
+
+    <!-- GLOBAL CHAT WIDGET -->
+    <div id="magicOshChatBubble">💬</div>
+
+    <div id="magicOshChatWindow">
+        <div class="chat-widget-header">
+            <div style="display:flex; align-items:center;">
+                <span class="chat-status"></span>
+                <h4>Soporte en vivo</h4>
+            </div>
+        </div>
+
+        <div id="chatWidgetMessages">
+            <div class="msg support"
+                style="align-self: center; width: 100%; text-align: center; background: transparent; border: none; color: #888; font-size: 0.8rem; margin-top: 1rem;">
+                Bienvenido a MagicOsh.
+            </div>
+        </div>
+
+        <div class="chat-widget-input">
+            <form id="chatWidgetForm">
+                <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
+                <button type="submit">➤</button>
+            </form>
+        </div>
+
+        <div id="widgetLoginOverlay">
+            <h5 style="color:#fff; margin-bottom:1rem;">Inicia sesión para hablar</h5>
+            <button class="btn btn-primary btn-sm" type="button"
+                onclick="window.location.href='login.html'">Conectar</button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=3"></script>
+    <script type="module" src="js/app.js?v=5"></script>
 </body>
 
 </html>
