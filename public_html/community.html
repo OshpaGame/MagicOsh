@@ -234,6 +234,7 @@
                         style="position:absolute; top:5px; left:5px; background:red; color:white; border:none; border-radius:50%; width:25px; height:25px; cursor:pointer;">x</button>
                 </div>
                 <!-- Script Preview -->
+                <!-- Script/File Preview -->
                 <div id="scriptPreview"
                     style="display:none; margin-bottom:1rem; background:#111; padding:10px; border-radius:5px; border:1px solid #333;">
                     <span id="scriptNameLabel" style="color:cyan; font-family:monospace;">File.cs</span>
@@ -247,8 +248,9 @@
                             📷 <input type="file" id="fileInput" accept="image/*" style="display:none"
                                 onchange="handleImageSelect(this)">
                         </label>
-                        <label class="attach-btn" title="Subir Script">
-                            📄 <input type="file" id="scriptInput" accept=".cs,.cpp,.h,.js,.txt,.py"
+                        <label class="attach-btn" title="Subir Archivo (Script, PDF, Zip...)">
+                            📎 <input type="file" id="scriptInput"
+                                accept=".cs,.cpp,.h,.js,.txt,.py,.md,.json,.xml,.html,.css,.pdf,.zip,.rar,.7z"
                                 style="display:none" onchange="handleScriptSelect(this)">
                         </label>
                     </div>
@@ -339,17 +341,24 @@
         function handleScriptSelect(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+                const ext = file.name.split('.').pop().toLowerCase();
+                const isBinary = ['pdf', 'zip', 'rar', '7z', 'exe', 'dll', 'png', 'jpg', 'doc', 'docx'].includes(ext);
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     selectedScriptData = {
                         fileName: file.name,
-                        code: e.target.result,
-                        language: file.name.split('.').pop()
+                        code: e.target.result, // Base64 if binary, Text if source code
+                        language: ext,
+                        isBinary: isBinary
                     };
-                    document.getElementById('scriptNameLabel').textContent = "📄 " + file.name;
+                    const icon = isBinary ? "📦" : "📄";
+                    document.getElementById('scriptNameLabel').textContent = `${icon} ${file.name}`;
                     document.getElementById('scriptPreview').style.display = 'block';
                 }
-                reader.readAsText(file);
+
+                if (isBinary) reader.readAsDataURL(file);
+                else reader.readAsText(file);
             }
         }
 
@@ -438,19 +447,33 @@
             // SCRIPT VIEWER
             let scriptHtml = "";
             if (post.scriptData) {
-                scriptHtml = `
-                <div style="margin-top:10px; background:#1e1e1e; border-radius:5px; overflow:hidden; border:1px solid #333;">
-                    <div style="background:#2d2d2d; padding:5px 10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-family:monospace; color:#ccc;">📄 ${post.scriptData.fileName}</span>
-                        <div style="display:flex; gap:10px;">
-                             <button onclick="copyCode('${post.id}')" style="background:none; border:none; color:cyan; cursor:pointer;" title="Copiar">📋</button>
-                             <a href="data:text/plain;charset=utf-8,${encodeURIComponent(post.scriptData.code)}" download="${post.scriptData.fileName}" style="text-decoration:none; color:lime;">⬇️</a>
+                if (post.scriptData.isBinary) {
+                    // BINARY CARD
+                    scriptHtml = `
+                    <div style="margin-top:10px; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #333; display:flex; align-items:center; gap:15px;">
+                        <div style="font-size:2rem;">📦</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:bold; color:white;">${post.scriptData.fileName}</div>
+                            <div style="font-size:0.8rem; color:gray;">Archivo adjunto (${post.scriptData.language.toUpperCase()})</div>
                         </div>
-                    </div>
-                    <div style="max-height:200px; overflow-y:auto; padding:10px;">
-                        <pre id="code-${post.id}" style="margin:0; font-family:'Consolas', monospace; font-size:0.9rem; color:#d4d4d4; white-space:pre-wrap;">${escapeHtml(post.scriptData.code)}</pre>
-                    </div>
-                </div>`;
+                        <a href="${post.scriptData.code}" download="${post.scriptData.fileName}" class="btn btn-primary btn-sm" style="text-decoration:none;">Descargar</a>
+                    </div>`;
+                } else {
+                    // CODE VIEWER
+                    scriptHtml = `
+                    <div style="margin-top:10px; background:#1e1e1e; border-radius:5px; overflow:hidden; border:1px solid #333;">
+                        <div style="background:#2d2d2d; padding:5px 10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-family:monospace; color:#ccc;">📄 ${post.scriptData.fileName}</span>
+                            <div style="display:flex; gap:10px;">
+                                 <button onclick="copyCode('${post.id}')" style="background:none; border:none; color:cyan; cursor:pointer;" title="Copiar">📋</button>
+                                 <a href="data:text/plain;charset=utf-8,${encodeURIComponent(post.scriptData.code)}" download="${post.scriptData.fileName}" style="text-decoration:none; color:lime;">⬇️</a>
+                            </div>
+                        </div>
+                        <div style="max-height:200px; overflow-y:auto; padding:10px;">
+                            <pre id="code-${post.id}" style="margin:0; font-family:'Consolas', monospace; font-size:0.9rem; color:#d4d4d4; white-space:pre-wrap;">${escapeHtml(post.scriptData.code)}</pre>
+                        </div>
+                    </div>`;
+                }
             }
 
             const date = new Date(post.timestamp).toLocaleDateString() + " " + new Date(post.timestamp).toLocaleTimeString();
