@@ -36,168 +36,218 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// --- File-Based Database Persistence ---
+// --- DATABASE (File-based) ---
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
-const POSTS_FILE = path.join(__dirname, 'data', 'posts.json'); // New Community DB
+const POSTS_FILE = path.join(__dirname, 'data', 'posts.json');
+const SESSIONS_FILE = path.join(__dirname, 'data', 'active_sessions.json');
+const STATS_FILE = path.join(__dirname, 'data', 'stats.json');
+const CHAT_LOGS_DIR = path.join(__dirname, 'chat_logs_archive');
 
-// Ensure Data Structure
+// Ensure data existence
 if (!fs.existsSync(path.join(__dirname, 'data'))) fs.mkdirSync(path.join(__dirname, 'data'));
-if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, '[]');
 if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, '[]');
+if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, '[]');
+if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}');
+if (!fs.existsSync(STATS_FILE)) fs.writeFileSync(STATS_FILE, JSON.stringify({ total_visits: 0 }));
+if (!fs.existsSync(CHAT_LOGS_DIR)) fs.mkdirSync(CHAT_LOGS_DIR);
 
-function getUsers() {
-    try { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); }
-    catch (e) { return []; }
-}
-function saveUser(user) {
-    const users = getUsers();
-    users.push(user);
-    try { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); return true; }
-    catch (e) { return false; }
-}
+// Helpers
+function getJson(file) { try { return JSON.parse(fs.readFileSync(file)); } catch { return {}; } }
+function saveJson(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2)); }
 
-// --- API Routes ---
+// --- API ROUTES ---
+// 1. Get Posts
+app.get('/api/posts', (req, res) => {
+    try { res.json(getJson(POSTS_FILE)); } catch (e) { res.status(500).json([]); }
+});
+// 2. Create Post
+app.post('/api/posts', (req, res) => {
+    try {
+        const { username, text, image, timestamp } = req.body;
+        const posts = getJson(POSTS_FILE);
+        if (!Array.isArray(posts)) return res.json({ success: false }); // Safety
 
-// AUTH
+        const newPost = { id: Date.now(), username, text, image, timestamp: timestamp || new Date().toISOString() };
+        posts.push(newPost);
+        if (posts.length > 100) posts.shift();
+        saveJson(POSTS_FILE, posts);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// Auth Routes (users) - Keep existing logic or simplified helper usage
 app.post('/api/auth/register', (req, res) => {
     const { username, email, password, dob } = req.body;
-    const users = getUsers();
-    if (users.find(u => u.email === email)) return res.status(400).json({ success: false, message: 'El correo ya está registrado.' });
+    let users = getJson(USERS_FILE);
+    if (!Array.isArray(users)) users = [];
+
+    if (users.find(u => u.email === email)) return res.status(400).json({ success: false, message: 'Registrado.' });
     const newUser = { id: Date.now(), username, email, password, dob, createdAt: new Date() };
-    saveUser(newUser);
-    console.log('New User Registered:', username);
+    users.push(newUser);
+    saveJson(USERS_FILE, users);
     res.json({ success: true, user: { id: newUser.id, username, email } });
 });
 
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
-    const users = getUsers();
+    let users = getJson(USERS_FILE);
+    if (!Array.isArray(users)) users = [];
     const user = users.find(u => u.email === email && u.password === password);
     if (user) res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
-    else res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
-});
-
-// COMMUNITY POSTS API (NEW)
-app.get('/api/posts', (req, res) => {
-    try {
-        const posts = JSON.parse(fs.readFileSync(POSTS_FILE));
-        res.json(posts);
-    } catch (e) { res.status(500).json([]); }
-});
-
-app.post('/api/posts', (req, res) => {
-    try {
-        const { username, text, image, timestamp } = req.body;
-        const posts = JSON.parse(fs.readFileSync(POSTS_FILE));
-
-        const newPost = {
-            id: Date.now(),
-            username,
-            text,
-            image, // Base64 string
-            timestamp: timestamp || new Date().toISOString()
-        };
-
-        posts.push(newPost);
-        // Keep only last 100 posts to avoid file bloat
-        if (posts.length > 100) posts.shift();
-
-        fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2));
-        res.json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: "Failed to save post" });
-    }
+    else res.status(401).json({ success: false, message: 'Invalid.' });
 });
 
 
-// --- Real-Time Logic (Universal Support) ---
-const activeChats = {};
+// --- REAL-TIME CORE ---
+// Load persisted sessions into memory on start
+let activeChats = getJson(SESSIONS_FILE);
+// Clean up old sockets from memory structure (but allow re-connect)
+Object.keys(activeChats).forEach(k => { activeChats[k].connected = false; });
 
 io.on('connection', (socket) => {
-    console.log('New Socket Connected:', socket.id);
-    activeChats[socket.id] = { email: null, history: [], type: 'unknown' };
+    // 1. Update Visits Stat
+    const stats = getJson(STATS_FILE);
+    stats.total_visits = (stats.total_visits || 0) + 1;
+    saveJson(STATS_FILE, stats);
+    // Broadcast stats to admins
+    io.to('admin_room').emit('stats_update', {
+        total_visits: stats.total_visits,
+        online_users: io.engine.clientsCount
+    });
 
     socket.on('identify', (data) => {
-        socket.join(data.type);
-        activeChats[socket.id].type = data.type;
-        console.log(`Socket ${socket.id} identified as ${data.type}`);
+        if (data.type === 'admin_windows_native') {
+            socket.join('admin_room');
+            console.log("ADMIN CONNECTED. Sending persisted sessions...");
 
-        if (data.type === 'web_client') {
-            if (data.username) activeChats[socket.id].username = data.username;
-            io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('user_connected', {
-                socketId: socket.id,
-                username: data.username || 'Invitado',
-                email: activeChats[socket.id].email
+            // Send FULL list of sessions (Active + Persisted but Offline)
+            const sessionList = Object.values(activeChats);
+            socket.emit('active_users_list', sessionList);
+
+            // Send Stats
+            socket.emit('stats_update', {
+                total_visits: stats.total_visits,
+                online_users: io.engine.clientsCount
             });
         }
+        else if (data.type === 'web_client') {
+            const username = data.username || 'Invitado';
 
-        if (['admin_windows', 'admin_windows_native', 'admin_android'].includes(data.type)) {
-            console.log("Admin Connected! Sending active list...");
-            const currentUsers = Object.keys(activeChats)
-                .filter(id => activeChats[id].type === 'web_client')
-                .map(id => ({
-                    socketId: id,
-                    username: activeChats[id].username || 'Invitado',
-                    email: activeChats[id].email,
-                    history: activeChats[id].history
-                }));
-            socket.emit('active_users_list', currentUsers);
+            // Recover or Init Session
+            if (!activeChats[socket.id]) {
+                activeChats[socket.id] = {
+                    socketId: socket.id, // For new users, socketId IS the key
+                    username: username,
+                    email: null,
+                    history: [],
+                    connected: true,
+                    type: 'web_client'
+                };
+            } else {
+                activeChats[socket.id].connected = true; // Mark back online
+                activeChats[socket.id].username = username;
+            }
+            saveJson(SESSIONS_FILE, activeChats); // PERSIST
+
+            // Notify Admin
+            io.to('admin_room').emit('user_connected', activeChats[socket.id]);
         }
     });
 
     socket.on('web_message', (msgData) => {
         if (!activeChats[socket.id]) return;
+
+        // Update Metadata
         if (msgData.email) activeChats[socket.id].email = msgData.email;
         if (msgData.username) activeChats[socket.id].username = msgData.username;
 
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = `[${timestamp}] ${msgData.username}: ${msgData.text}`;
-        activeChats[socket.id].history.push(logEntry);
 
+        activeChats[socket.id].history.push(logEntry);
+        saveJson(SESSIONS_FILE, activeChats); // PERSIST EVERY MSG
+
+        // Forward to Admin
         const adminPayload = { ...msgData, socketId: socket.id, timestamp };
-        io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('new_message', adminPayload);
+        io.to('admin_room').emit('new_message', adminPayload);
     });
 
+    // ADMIN ACTIONS
     socket.on('admin_reply', (replyData) => {
         const timestamp = new Date().toLocaleTimeString();
-        if (activeChats[replyData.targetSocketId]) {
-            activeChats[replyData.targetSocketId].history.push(`[${timestamp}] Soporte: ${replyData.message}`);
-            io.to(replyData.targetSocketId).emit('admin_response', replyData.message);
+        const targetId = replyData.targetSocketId;
+
+        if (activeChats[targetId]) {
+            const msg = `[${timestamp}] Soporte: ${replyData.message}`;
+            activeChats[targetId].history.push(msg);
+            saveJson(SESSIONS_FILE, activeChats); // PERSIST
+
+            io.to(targetId).emit('admin_response', replyData.message);
+        }
+    });
+
+    // NEW: ADMIN SEND FILE
+    socket.on('admin_file', (fileData) => {
+        // fileData: { targetSocketId, fileName, fileBase64 }
+        const timestamp = new Date().toLocaleTimeString();
+        const targetId = fileData.targetSocketId;
+
+        if (activeChats[targetId]) {
+            const msg = `[${timestamp}] Soporte envió archivo: ${fileData.fileName}`;
+            activeChats[targetId].history.push(msg);
+            saveJson(SESSIONS_FILE, activeChats);
+
+            // Send to Web User
+            io.to(targetId).emit('admin_file_receive', {
+                fileName: fileData.fileName,
+                fileData: fileData.fileBase64
+            });
         }
     });
 
     socket.on('admin_close_chat', (data) => {
         const targetId = data.targetSocketId;
         const session = activeChats[targetId];
+
         if (session) {
-            console.log(`Closing chat for: ${session.username || targetId}`);
-
-            // Archive
-            const logsDir = path.join(__dirname, 'chat_logs_archive');
-            if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
-
+            // Archive Logic
             const dateStr = new Date().toISOString().replace(/:/g, '-').split('.')[0];
             const safeUsername = (session.username || 'guest').replace(/[^a-z0-9]/gi, '_');
             const fileName = `${safeUsername}_${dateStr}.txt`;
+            const fileContent = `LOG - ${session.username}\n${new Date().toLocaleString()}\n\n` + session.history.join('\n');
 
-            const fileContent = `CHAT LOG - ${session.username}\nEMAIL: ${session.email || 'N/A'}\nDATE: ${new Date().toLocaleString()}\n----------------------------------------\n\n` + session.history.join('\n');
-            fs.writeFile(path.join(logsDir, fileName), fileContent, () => { });
+            fs.writeFile(path.join(CHAT_LOGS_DIR, fileName), fileContent, () => { });
 
+            // Notify User
             io.to(targetId).emit('admin_response', 'El soporte ha finalizado esta sesión.');
-            io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('chat_closed_confirmed', { socketId: targetId });
-            session.history = [];
+            io.to('admin_room').emit('chat_closed_confirmed', { socketId: targetId });
+
+            // DELETE FROM PERSISTENCE
+            delete activeChats[targetId];
+            saveJson(SESSIONS_FILE, activeChats);
         }
     });
 
-    socket.on('disconnect', async () => {
-        io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('user_disconnected', { socketId: socket.id });
-        delete activeChats[socket.id];
+    socket.on('disconnect', () => {
+        // Update Stats
+        const stats = getJson(STATS_FILE); // Re-read to ensure latest
+        io.to('admin_room').emit('stats_update', {
+            total_visits: stats.total_visits,
+            online_users: io.engine.clientsCount
+        });
+
+        if (activeChats[socket.id]) {
+            activeChats[socket.id].connected = false;
+            // DO NOT DELETE from activeChats yet! Wait for admin to close it.
+            saveJson(SESSIONS_FILE, activeChats);
+
+            io.to('admin_room').emit('user_disconnected', { socketId: socket.id });
+        }
     });
 });
 
 // --- Keep-Alive ---
-app.get('/health', (req, res) => res.send('I am alive!'));
+app.get('/health', (req, res) => res.send('OK'));
 function keepAlive() {
     const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
     const targetUrl = url.endsWith('/') ? `${url}health` : `${url}/health`;
@@ -210,6 +260,6 @@ setInterval(keepAlive, 840000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`MagicOsh Server running on port ${PORT}`);
+    console.log(`MagicOsh Server v2 running on ${PORT}`);
     setTimeout(keepAlive, 5000);
 });

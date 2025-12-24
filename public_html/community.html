@@ -414,8 +414,16 @@
                 addDmMsg('support', "Conectado. Escribe a Oshpa.");
             });
 
+            // Admin Response (Text)
             socket.on('admin_response', (msg) => {
                 addDmMsg('support', msg);
+            });
+
+            // Admin Response (File)
+            socket.on('admin_file_receive', (data) => {
+                // data: { fileName, fileData (base64) }
+                const link = `<a href="data:application/octet-stream;base64,${data.fileData}" download="${data.fileName}" style="color:cyan;text-decoration:underline;">📎 Descargar: ${data.fileName}</a>`;
+                addDmMsg('support', link);
             });
         }
 

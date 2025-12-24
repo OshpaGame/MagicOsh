@@ -1,370 +1,372 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using SocketIOClient;
 using Newtonsoft.Json;
-using System.Linq;
 
-namespace MagicOshAdmin
-{
-    // Data Model for Session
-    public class UserSession {
-        public string SocketId { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public List<string> History { get; set; } = new List<string>();
-        public bool HasUnread { get; set; } = false;
-        public bool IsOnline { get; set; } = true;
+namespace MagicOshAdmin {
+    public partial class MainForm : Form {
         
-        public override string ToString() {
-            string status = IsOnline ? "🟢" : "⚫";
-            string unread = HasUnread ? "(!)" : "";
-            return $"{status} {Username} {unread}";
-        }
-    }
-
-    public partial class MainForm : Form
-    {
-        private SocketIO client;
-        private string activeSocketId; // Currently viewing
-        
-        // Data Store
-        private Dictionary<string, UserSession> sessions = new Dictionary<string, UserSession>();
-        
-        // UI Components
+        // UI Controls
         private ListBox lstUsers;
-        private RichTextBox chatHistory;
+        private RichTextBox txtChat;
         private TextBox txtInput;
         private Button btnSend;
-        private Button btnCloseChat; // NEW
-        private Label lblHeader; // NEW
-        private Label lblStatus;
-        private Panel sidebar;
+        private Button btnAttach; // NEW
+        private Button btnCloseChat;
+        private Label lblStatus; 
+        private Label lblStats;   // NEW
+        private Label lblActiveUser;
+        private Panel sidebarPanel;
+        private Panel chatPanel;
 
-        public MainForm()
-        {
-            InitializeComponent(); // Custom logic below
-            InitializeSocket();
+        // Logic
+        private SocketIO client;
+        private Dictionary<string, UserSession> sessions = new Dictionary<string, UserSession>();
+        private string activeSocketId = null; 
+
+        public MainForm() {
+            InitializeComponent();
+            SetupNetwork();
         }
 
-        private void InitializeComponent()
-        {
-            this.Size = new Size(1100, 750);
-            this.Text = "MagicOsh Admin Panel (Multi-Client Edition)";
-            this.Icon = SystemIcons.Shield;
-            this.BackColor = Color.FromArgb(10, 10, 15);
+        private void InitializeComponent() {
+            this.Text = "MagicOsh Admin (Ops Center v2.0)";
+            this.Size = new Size(1150, 700);
+            this.BackColor = Color.FromArgb(10, 10, 20);
+            this.ForeColor = Color.White;
 
-            // --- 1. SIDEBAR (User List) ---
-            sidebar = new Panel();
-            sidebar.Dock = DockStyle.Left;
-            sidebar.Width = 260;
-            sidebar.BackColor = Color.FromArgb(20, 20, 35);
-            sidebar.Padding = new Padding(10);
-
-            Label lblLogo = new Label();
-            lblLogo.Text = "OPS CENTER";
-            lblLogo.ForeColor = Color.Cyan;
-            lblLogo.Font = new Font("Consolas", 14, FontStyle.Bold);
-            lblLogo.Dock = DockStyle.Top;
-            lblLogo.Height = 40;
-            sidebar.Controls.Add(lblLogo);
-
-            lstUsers = new ListBox();
-            lstUsers.Dock = DockStyle.Fill;
-            lstUsers.BackColor = Color.FromArgb(30, 30, 45);
-            lstUsers.ForeColor = Color.White;
-            lstUsers.BorderStyle = BorderStyle.None;
-            lstUsers.Font = new Font("Segoe UI", 11);
-            lstUsers.DrawMode = DrawMode.OwnerDrawFixed;
-            lstUsers.ItemHeight = 40;
-            lstUsers.DrawItem += LstUsers_DrawItem;
-            lstUsers.SelectedIndexChanged += LstUsers_SelectionChanged;
-            sidebar.Controls.Add(lstUsers);
+            // --- 1. SIDEBAR ---
+            sidebarPanel = new Panel { Dock = DockStyle.Left, Width = 280, BackColor = Color.FromArgb(20, 20, 30), Padding = new Padding(0) };
             
-            // --- 2. MAIN CHAT AREA ---
-            Panel chatPanel = new Panel();
-            chatPanel.Dock = DockStyle.Fill;
-            chatPanel.BackColor = Color.FromArgb(5, 5, 10);
+            Label lblOps = new Label { Text = "OPS CENTER", Dock = DockStyle.Top, Height = 50, ForeColor = Color.Cyan, Font = new Font("Segoe UI", 14, FontStyle.Bold), TextAlign = ContentAlignment.MiddleCenter };
+            
+            lblStatus = new Label { Text = "Conectando...", Dock = DockStyle.Bottom, Height = 30, ForeColor = Color.Gray, TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Black };
+
+            lstUsers = new ListBox { 
+                Dock = DockStyle.Fill, 
+                BackColor = Color.FromArgb(20, 20, 30), 
+                ForeColor = Color.White, 
+                BorderStyle = BorderStyle.None,
+                Font = new Font("Segoe UI", 11)
+            };
+            lstUsers.DrawMode = DrawMode.OwnerDrawFixed;
+            lstUsers.ItemHeight = 40; // Taller for better look
+            lstUsers.DrawItem += LstUsers_DrawItem;
+            lstUsers.SelectedIndexChanged += LstUsers_SelectedIndexChanged;
+
+            sidebarPanel.Controls.Add(lstUsers);
+            sidebarPanel.Controls.Add(lblOps);
+            sidebarPanel.Controls.Add(lblStatus);
+
+            // --- 2. CHAT PANEL ---
+            chatPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.Black };
             
             // Header
-            Panel headerPanel = new Panel();
-            headerPanel.Dock = DockStyle.Top;
-            headerPanel.Height = 60;
-            headerPanel.BackColor = Color.FromArgb(25, 25, 40);
-            headerPanel.Padding = new Padding(15);
+            Panel headerPanel = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
+            lblActiveUser = new Label { Text = "Sin Selección", Dock = DockStyle.Left, Width=400, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.White };
             
-            lblHeader = new Label();
-            lblHeader.Text = "Selecciona un usuario...";
-            lblHeader.ForeColor = Color.White;
-            lblHeader.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-            lblHeader.AutoSize = true;
-            lblHeader.Location = new Point(15, 15);
-            
-            btnCloseChat = new Button();
-            btnCloseChat.Text = "FINALIZAR CHAT";
-            btnCloseChat.BackColor = Color.Crimson;
-            btnCloseChat.ForeColor = Color.White;
-            btnCloseChat.FlatStyle = FlatStyle.Flat;
-            btnCloseChat.Size = new Size(120, 30);
-            btnCloseChat.Location = new Point(500, 15); // Will anchor right
-            btnCloseChat.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCloseChat.Visible = false;
+            // Stats Label (Top Right)
+            lblStats = new Label { Text = "Visitas: 0 | Online: 0", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, ForeColor = Color.Orange, Font = new Font("Consolas", 10) };
+
+            btnCloseChat = new Button { Text = "FINALIZAR SESIÓN", Dock = DockStyle.Right, Width = 140, BackColor = Color.Crimson, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
             btnCloseChat.Click += BtnCloseChat_Click;
-            
-            headerPanel.Controls.Add(lblHeader);
-            headerPanel.Controls.Add(btnCloseChat);
+            btnCloseChat.Visible = false;
 
-            // Status Bar
-            lblStatus = new Label();
-            lblStatus.Text = "Conectando...";
-            lblStatus.ForeColor = Color.Gray;
-            lblStatus.Dock = DockStyle.Top;
-            lblStatus.TextAlign = ContentAlignment.MiddleCenter;
-
-            // Chat History
-            chatHistory = new RichTextBox();
-            chatHistory.Dock = DockStyle.Fill;
-            chatHistory.BackColor = Color.Black;
-            chatHistory.ForeColor = Color.LightGray;
-            chatHistory.Font = new Font("Consolas", 10);
-            chatHistory.ReadOnly = true;
-            chatHistory.BorderStyle = BorderStyle.None;
-            chatHistory.Padding = new Padding(20);
+            headerPanel.Controls.Add(lblStats); // Middle
+            headerPanel.Controls.Add(lblActiveUser); // Lefter
+            headerPanel.Controls.Add(btnCloseChat); // Righter
 
             // Input Area
-            Panel inputPanel = new Panel();
-            inputPanel.Dock = DockStyle.Bottom;
-            inputPanel.Height = 60;
-            inputPanel.Padding = new Padding(10);
-            inputPanel.BackColor = Color.FromArgb(30, 30, 40);
+            Panel inputPanel = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
+            
+            btnAttach = new Button { Text = "📎", Dock = DockStyle.Left, Width = 50, BackColor = Color.FromArgb(60,60,70), FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 14) };
+            btnAttach.Click += BtnAttach_Click;
 
-            btnSend = new Button();
-            btnSend.Text = "➔";
-            btnSend.Dock = DockStyle.Right;
-            btnSend.Width = 60;
-            btnSend.BackColor = Color.FromArgb(0, 150, 255);
-            btnSend.FlatStyle = FlatStyle.Flat;
-            btnSend.ForeColor = Color.White;
+            btnSend = new Button { Text = "ENVIAR", Dock = DockStyle.Right, Width = 100, BackColor = Color.DodgerBlue, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            
+            txtInput = new TextBox { Dock = DockStyle.Fill, BackColor = Color.FromArgb(40, 40, 50), ForeColor = Color.White, BorderStyle = BorderStyle.FixedSingle, Font = new Font("Segoe UI", 12) };
+            
             btnSend.Click += BtnSend_Click;
+            txtInput.KeyDown += (s, e) => { if(e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; BtnSend_Click(s, e); } };
 
-            txtInput = new TextBox();
-            txtInput.Dock = DockStyle.Fill;
-            txtInput.BackColor = Color.FromArgb(50, 50, 60);
-            txtInput.ForeColor = Color.White;
-            txtInput.BorderStyle = BorderStyle.FixedSingle;
-            txtInput.Font = new Font("Segoe UI", 14);
-            txtInput.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) BtnSend_Click(s, e); };
+            // Wrapper just to give margin to TextBox
+            Panel txtWrapper = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10, 5, 10, 5) };
+            txtWrapper.Controls.Add(txtInput);
 
-            inputPanel.Controls.Add(txtInput);
+            inputPanel.Controls.Add(txtWrapper);
+            inputPanel.Controls.Add(btnAttach);
             inputPanel.Controls.Add(btnSend);
 
-            // Assembly
-            chatPanel.Controls.Add(chatHistory);
-            chatPanel.Controls.Add(inputPanel);
-            chatPanel.Controls.Add(lblStatus);
-            chatPanel.Controls.Add(headerPanel);
+            // Chat Text Box
+            txtChat = new RichTextBox { 
+                Dock = DockStyle.Fill, 
+                BackColor = Color.Black, 
+                ForeColor = Color.Lime, 
+                Font = new Font("Consolas", 11), 
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None,
+                Padding = new Padding(15)
+            };
 
+            chatPanel.Controls.Add(txtChat);
+            chatPanel.Controls.Add(inputPanel); 
+            chatPanel.Controls.Add(headerPanel);
+            
             this.Controls.Add(chatPanel);
-            this.Controls.Add(sidebar);
+            this.Controls.Add(sidebarPanel);
         }
 
-        // --- SOCKET LOGIC ---
+        // --- EVENTS ---
 
-        private async void InitializeSocket()
-        {
-            // Use your Render URL or local for testing
-            client = new SocketIO("https://magicosh-service.onrender.com");
-            // client = new SocketIO("http://localhost:3000"); // Uncomment for local logic
+        private void LstUsers_DrawItem(object sender, DrawItemEventArgs e) {
+            e.DrawBackground();
+            if (e.Index >= 0) {
+                UserSession item = (UserSession)lstUsers.Items[e.Index];
+                
+                // Traffic Light Colors
+                Brush statusBrush = item.IsOnline ? Brushes.Lime : Brushes.Gray;
+                if(item.HasUnread) statusBrush = Brushes.Yellow;
 
-            client.OnConnected += async (sender, e) =>
-            {
-                UpdateStatus("Conectado al servidor", Color.LimeGreen);
-                await client.EmitAsync("identify", new { type = "admin_windows_native" });
-            };
+                string displayMain = item.Username.Length > 15 ? item.Username.Substring(0,12)+"..." : item.Username;
+                string displaySub = item.IsOnline ? "En Linea" : "Desconectado";
+                if(item.HasUnread) displaySub = "NUEVO MENSAJE";
+
+                // Draw Circle
+                e.Graphics.FillEllipse(statusBrush, e.Bounds.Left + 10, e.Bounds.Top + 12, 16, 16);
+                
+                // Draw Name
+                e.Graphics.DrawString(displayMain, new Font("Segoe UI", 12, FontStyle.Bold), Brushes.White, e.Bounds.Left + 35, e.Bounds.Top + 4);
+                // Draw Subtext
+                e.Graphics.DrawString(displaySub, new Font("Segoe UI", 8), Brushes.Gray, e.Bounds.Left + 35, e.Bounds.Top + 24);
+
+                // Separator
+                e.Graphics.DrawLine(new Pen(Color.FromArgb(40,40,50)), e.Bounds.Left, e.Bounds.Bottom-1, e.Bounds.Right, e.Bounds.Bottom-1);
+            }
+        }
+
+        private void LstUsers_SelectedIndexChanged(object sender, EventArgs e) {
+            if (lstUsers.SelectedItem == null) return;
+            var session = (UserSession)lstUsers.SelectedItem;
             
-            client.OnDisconnected += (sender, e) => UpdateStatus("Desconectado", Color.Red);
+            activeSocketId = session.SocketId;
+            lblActiveUser.Text = session.Username.ToUpper();
+            btnCloseChat.Visible = true;
+            session.HasUnread = false;
+            
+            RefreshChatView(session);
+            RefreshUserList(); 
+        }
 
-            // 1. Initial User List
+        private void RefreshChatView(UserSession session) {
+            txtChat.Clear();
+            AppendText($"--- Historial con {session.Username} ---\n", Color.Gray);
+            foreach(var msg in session.History) {
+                Color c = msg.Contains("Soporte:") ? Color.Cyan : Color.Lime;
+                if(msg.Contains("envió archivo")) c = Color.Orange;
+                AppendText(msg + "\n", c);
+            }
+            txtChat.SelectionStart = txtChat.Text.Length;
+            txtChat.ScrollToCaret();
+        }
+
+        private void RefreshUserList() {
+            lstUsers.SelectedIndexChanged -= LstUsers_SelectedIndexChanged;
+            int idx = lstUsers.SelectedIndex;
+            lstUsers.Items.Clear();
+            foreach(var s in sessions.Values) lstUsers.Items.Add(s);
+            if(idx >= 0 && idx < lstUsers.Items.Count) lstUsers.SelectedIndex = idx;
+            lstUsers.SelectedIndexChanged += LstUsers_SelectedIndexChanged;
+        }
+
+        private void AppendText(string text, Color color) {
+            txtChat.SelectionStart = txtChat.TextLength;
+            txtChat.SelectionLength = 0;
+            txtChat.SelectionColor = color;
+            txtChat.AppendText(text);
+            txtChat.SelectionColor = txtChat.ForeColor;
+            txtChat.ScrollToCaret();
+        }
+
+        // --- ACTIONS ---
+
+        private void BtnSend_Click(object sender, EventArgs e) {
+            if (string.IsNullOrWhiteSpace(txtInput.Text) || activeSocketId == null) return;
+            var payload = new { targetSocketId = activeSocketId, message = txtInput.Text };
+            client.EmitAsync("admin_reply", payload);
+            
+            if(sessions.ContainsKey(activeSocketId)) {
+                var s = sessions[activeSocketId];
+                string log = $"[{DateTime.Now.ToShortTimeString()}] Soporte: {txtInput.Text}";
+                s.History.Add(log);
+                RefreshChatView(s); // Force redraw to show msg
+            }
+            txtInput.Clear();
+        }
+
+        private void BtnAttach_Click(object sender, EventArgs e) {
+            if (activeSocketId == null) { MessageBox.Show("Selecciona un usuario primero."); return; }
+
+            using(OpenFileDialog ofd = new OpenFileDialog()) {
+                ofd.Title = "Enviar archivo a " + lblActiveUser.Text;
+                if(ofd.ShowDialog() == DialogResult.OK) {
+                    try {
+                        byte[] bytes = File.ReadAllBytes(ofd.FileName);
+                        string base64 = Convert.ToBase64String(bytes);
+                        string safeName = Path.GetFileName(ofd.FileName);
+
+                        // Checks size (approx 50MB limit on server)
+                        if(bytes.Length > 45 * 1024 * 1024) {
+                             MessageBox.Show("Archivo demasiado grande. Máximo 45MB."); return;
+                        }
+
+                        var payload = new { targetSocketId = activeSocketId, fileName = safeName, fileBase64 = base64 };
+                        client.EmitAsync("admin_file", payload);
+
+                        // Log locally
+                        if(sessions.ContainsKey(activeSocketId)) {
+                             string log = $"[{DateTime.Now.ToShortTimeString()}] Soporte envió archivo: {safeName}";
+                             sessions[activeSocketId].History.Add(log);
+                             RefreshChatView(sessions[activeSocketId]);
+                        }
+                    } catch (Exception ex) { MessageBox.Show("Error leyendo archivo: " + ex.Message); }
+                }
+            }
+        }
+
+        private void BtnCloseChat_Click(object sender, EventArgs e) {
+            if(activeSocketId == null) return;
+            client.EmitAsync("admin_close_chat", new { targetSocketId = activeSocketId });
+            
+            if(sessions.ContainsKey(activeSocketId)) sessions.Remove(activeSocketId);
+            RefreshUserList();
+            txtChat.Clear();
+            lblActiveUser.Text = "Sin Selección";
+            activeSocketId = null;
+            btnCloseChat.Visible = false;
+        }
+
+        // --- NETWORK ---
+
+        private async void SetupNetwork() {
+            client = new SocketIO("https://magicosh-service.onrender.com", new SocketIOOptions { 
+                ConnectionTimeout = TimeSpan.FromSeconds(20)
+            });
+
+            // 1. Initial Full List (Active + Offline/Persisted)
             client.On("active_users_list", response => {
                 try {
-                    var users = JsonConvert.DeserializeObject<List<UserSession>>(response.GetValue<string>());
+                    var users = response.GetValue<List<UserSession>>();
                     this.Invoke((MethodInvoker)delegate {
                         foreach(var u in users) {
                             if(!sessions.ContainsKey(u.SocketId)) sessions.Add(u.SocketId, u);
+                            else {
+                                // Update existing
+                                sessions[u.SocketId].IsOnline = u.IsOnline; 
+                                sessions[u.SocketId].History = u.History;
+                            }
                         }
                         RefreshUserList();
                     });
                 } catch {}
             });
 
-            // 2. New Message
-            client.On("new_message", response => {
+            // 2. Stats Update
+            client.On("stats_update", response => {
                 try {
-                    dynamic obj = JsonConvert.DeserializeObject<dynamic>(response.ToString())[0];
-                    string socketId = obj.socketId;
-                    string user = obj.username;
-                    string text = obj.text;
-                    string time = obj.timestamp;
-
+                    var data = response.GetValue<StatsData>();
                     this.Invoke((MethodInvoker)delegate {
-                        // Ensure session exists
-                        if(!sessions.ContainsKey(socketId)) {
-                             sessions.Add(socketId, new UserSession { 
-                                 SocketId = socketId, 
-                                 Username = user, 
-                                 History = new List<string>() 
-                             });
-                             RefreshUserList();
-                        }
-
-                        var session = sessions[socketId];
-                        string logLine = $"[{time}] {user}: {text}";
-                        session.History.Add(logLine);
-
-                        if(activeSocketId == socketId) {
-                            AppendText(logLine + "\n", Color.Cyan); // Show immediately
-                        } else {
-                            session.HasUnread = true;
-                            RefreshUserList();
-                            System.Media.SystemSounds.Exclamation.Play(); // Ding!
-                        }
+                        lblStats.Text = $"VISITAS: {data.total_visits} | ONLINE: {data.online_users}";
                     });
-                } catch (Exception ex) { Console.WriteLine(ex.Message); }
-            });
-
-            // 3. User Connected
-             client.On("user_connected", response => {
-                 // Similar to new_message logic just for creating session
-                 try {
-                     dynamic obj = JsonConvert.DeserializeObject<dynamic>(response.ToString())[0];
-                     string id = obj.socketId;
-                     string name = obj.username;
-                     
-                     this.Invoke((MethodInvoker)delegate {
-                        if(!sessions.ContainsKey(id)) {
-                             sessions.Add(id, new UserSession { SocketId = id, Username = name });
-                             RefreshUserList();
-                        } else {
-                            sessions[id].IsOnline = true;
-                            RefreshUserList();
-                        }
-                     });
-                 } catch {}
-             });
-
-            // 4. User Disconnected
-            client.On("user_disconnected", response => {
-                try {
-                     dynamic obj = JsonConvert.DeserializeObject<dynamic>(response.ToString())[0];
-                     string id = obj.socketId;
-                     this.Invoke((MethodInvoker)delegate {
-                        if(sessions.ContainsKey(id)) {
-                            sessions[id].IsOnline = false;
-                            RefreshUserList();
-                        }
-                     });
                 } catch {}
             });
-            
-             // 5. Connect
+
+            // 3. New Message
+            client.On("new_message", response => {
+                try {
+                    var data = response.GetValue<MessageData>(); 
+                    if(data == null) return;
+
+                    string sid = data.socketId;
+
+                    this.Invoke((MethodInvoker)delegate {
+                        if(!sessions.ContainsKey(sid)) {
+                            // New Session
+                            sessions.Add(sid, new UserSession { SocketId = sid, Username = data.username, IsOnline=true });
+                        }
+                        
+                        var s = sessions[sid];
+                        s.IsOnline = true;
+                        string ts = data.timestamp ?? DateTime.Now.ToShortTimeString();
+                        s.History.Add($"[{ts}] {data.username}: {data.text}");
+
+                        if(activeSocketId == sid) RefreshChatView(s);
+                        else {
+                            s.HasUnread = true;
+                            RefreshUserList();
+                            System.Media.SystemSounds.Exclamation.Play();
+                        }
+                    });
+                } catch {}
+            });
+
+            // 4. Connect/Disconnect Events
+            client.On("user_connected", response => {
+                try {
+                    var obj = response.GetValue<UserSession>();
+                    this.Invoke((MethodInvoker)delegate {
+                        if(!sessions.ContainsKey(obj.SocketId)) sessions.Add(obj.SocketId, obj);
+                        else sessions[obj.SocketId].IsOnline = true;
+                        RefreshUserList();
+                    });
+                } catch {}
+            });
+            client.On("user_disconnected", response => {
+                 try {
+                    var obj = response.GetValue<UserSession>();
+                    this.Invoke((MethodInvoker)delegate {
+                        if(sessions.ContainsKey(obj.SocketId)) {
+                             sessions[obj.SocketId].IsOnline = false;
+                             RefreshUserList();
+                        }
+                    });
+                } catch {}
+            });
+
+            client.OnConnected += (s, e) => {
+                this.Invoke((MethodInvoker)delegate {
+                    lblStatus.Text = "CONECTADO A LA NUBE ☁";
+                    lblStatus.ForeColor = Color.Lime;
+                    client.EmitAsync("identify", new { type = "admin_windows_native" });
+                });
+            };
+
             try { await client.ConnectAsync(); } catch {}
         }
+    }
 
-        // --- UI HANDLERS ---
+    // Models
+    public class UserSession {
+        [JsonProperty("socketId")] public string SocketId { get; set; }
+        [JsonProperty("username")] public string Username { get; set; }
+        [JsonProperty("email")] public string Email { get; set; }
+        [JsonProperty("history")] public List<string> History { get; set; } = new List<string>();
+        [JsonProperty("connected")] public bool IsOnline { get; set; } = true;
+        [JsonIgnore] public bool HasUnread { get; set; } = false;
+        public override string ToString() { return Username; } // Simple string for list, but we custom draw it
+    }
 
-        private void LstUsers_SelectionChanged(object sender, EventArgs e) {
-            if(lstUsers.SelectedIndex == -1) return;
-            
-            var session = (UserSession)lstUsers.SelectedItem;
-            activeSocketId = session.SocketId;
-            session.HasUnread = false;
-            
-            // Update UI
-            lblHeader.Text = $"Chat con: {session.Username}";
-            btnCloseChat.Visible = true;
-            RefreshUserList(); // Clear unread mark
-            
-            // Load History
-            chatHistory.Clear();
-            foreach(var line in session.History) {
-                if(line.Contains("Soporte:")) AppendText(line + "\n", Color.Magenta);
-                else AppendText(line + "\n", Color.Cyan);
-            }
-            chatHistory.ScrollToCaret();
-        }
+    public class MessageData {
+        [JsonProperty("socketId")] public string socketId { get; set; }
+        [JsonProperty("username")] public string username { get; set; }
+        [JsonProperty("text")] public string text { get; set; }
+        [JsonProperty("timestamp")] public string timestamp { get; set; }
+    }
 
-        private async void BtnSend_Click(object sender, EventArgs e) {
-            if(string.IsNullOrWhiteSpace(txtInput.Text) || activeSocketId == null) return;
-            
-            var text = txtInput.Text;
-            var reply = new { targetSocketId = activeSocketId, message = text };
-            
-            await client.EmitAsync("admin_reply", reply);
-            
-            // Local Log
-            string time = DateTime.Now.ToShortTimeString();
-            string log = $"[{time}] Soporte: {text}";
-            sessions[activeSocketId].History.Add(log);
-            AppendText(log + "\n", Color.Magenta);
-            
-            txtInput.Clear();
-        }
-
-        private async void BtnCloseChat_Click(object sender, EventArgs e) {
-            if(activeSocketId == null) return;
-            var result = MessageBox.Show("¿Finalizar y archivar chat?", "Confirmar", MessageBoxButtons.YesNo);
-            if(result == DialogResult.Yes) {
-                
-                await client.EmitAsync("admin_close_chat", new { targetSocketId = activeSocketId });
-                
-                sessions.Remove(activeSocketId);
-                activeSocketId = null;
-                
-                chatHistory.Clear();
-                lblHeader.Text = "Chat finalizado.";
-                btnCloseChat.Visible = false;
-                RefreshUserList();
-            }
-        }
-
-        // --- HELPERS ---
-
-        private void RefreshUserList() {
-            lstUsers.Items.Clear();
-            foreach(var s in sessions.Values) {
-                lstUsers.Items.Add(s);
-            }
-        }
-        
-        private void LstUsers_DrawItem(object sender, DrawItemEventArgs e) {
-            e.DrawBackground();
-            if (e.Index < 0) return;
-            
-            var session = (UserSession)lstUsers.Items[e.Index];
-            Brush textBrush = Brushes.White;
-            
-            if(session.HasUnread) textBrush = Brushes.Cyan;
-            if(!session.IsOnline) textBrush = Brushes.Gray;
-            
-            e.Graphics.DrawString(session.ToString(), e.Font, textBrush, e.Bounds);
-            e.DrawFocusRectangle();
-        }
-
-        private void UpdateStatus(string text, Color color) {
-            this.Invoke((MethodInvoker)delegate {
-                lblStatus.Text = text;
-                lblStatus.ForeColor = color;
-            });
-        }
-        
-        private void AppendText(string text, Color color) {
-            chatHistory.SelectionStart = chatHistory.TextLength;
-            chatHistory.SelectionLength = 0;
-            chatHistory.SelectionColor = color;
-            chatHistory.AppendText(text);
-            chatHistory.SelectionColor = chatHistory.ForeColor;
-            chatHistory.ScrollToCaret();
-        }
+    public class StatsData {
+        [JsonProperty("total_visits")] public int total_visits { get; set; }
+        [JsonProperty("online_users")] public int online_users { get; set; }
     }
 }
