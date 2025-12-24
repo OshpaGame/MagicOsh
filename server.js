@@ -61,28 +61,60 @@ app.get('/api/posts', (req, res) => {
 // 2. Create Post
 app.post('/api/posts', (req, res) => {
     try {
-        const { username, text, image, timestamp } = req.body;
+        const { username, text, image, scriptData, timestamp } = req.body;
         const posts = getJson(POSTS_FILE);
-        if (!Array.isArray(posts)) return res.json({ success: false }); // Safety
 
         const newPost = {
             id: Date.now(),
             username,
             text,
             image,
+            scriptData, // { fileName, code, language }
             timestamp: timestamp || new Date().toISOString(),
-            likes: [],     // Array of usernames
-            comments: []   // Array of {username, text, timestamp}
+            likes: [],
+            comments: [],
+            reports: 0
         };
         posts.push(newPost);
         if (posts.length > 100) posts.shift();
         saveJson(POSTS_FILE, posts);
 
-        // LIVE SYNC: Notify all public clients
         io.emit('new_public_post', newPost);
-
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// DELETE Post
+app.delete('/api/posts/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username } = req.body;
+        let posts = getJson(POSTS_FILE);
+        const postIdx = posts.findIndex(p => p.id == id);
+
+        if (postIdx === -1) return res.status(404).json({ error: "Not found" });
+
+        if (posts[postIdx].username === username || username === 'Oshpa') {
+            const deletedId = posts[postIdx].id;
+            posts.splice(postIdx, 1);
+            saveJson(POSTS_FILE, posts);
+            io.emit('post_deleted', { id: deletedId });
+            res.json({ success: true });
+        } else { res.status(403).json({ error: "Unauthorized" }); }
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// REPORT Post
+app.post('/api/posts/:id/report', (req, res) => {
+    const { id } = req.params;
+    let posts = getJson(POSTS_FILE);
+    const post = posts.find(p => p.id == id);
+    if (post) {
+        post.reports = (post.reports || 0) + 1;
+        saveJson(POSTS_FILE, posts);
+        io.to('admin_room').emit('content_reported', { postId: id, reporter: req.body.username });
+        res.json({ success: true });
+    } else { res.status(404).json({ error: "Not found" }); }
 });
 
 // 3. Toggle Like
