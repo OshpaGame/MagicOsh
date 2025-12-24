@@ -46,10 +46,12 @@
                 <a href="dashboard.html" id="userMenu" style="display:none;">Mi Dashboard</a>
             </nav>
 
-            <div class="header-actions">
+            <div class="header-actions" style="display: flex; align-items: center; gap: 1rem;">
                 <a href="#store" class="btn btn-primary btn-glow">VER SCRIPTS</a>
                 <a href="login.html" id="btnLogin" class="btn btn-secondary">Login</a>
-                <div id="userAvatar" class="avatar-circle" style="display:none; cursor:pointer;"
+                <!-- Fixed Avatar Size -->
+                <div id="userAvatar" class="avatar-circle"
+                    style="display:none; cursor:pointer; width: 40px; height: 40px; min-width: 40px; font-size: 1.2rem; align-items: center; justify-content: center; margin: 0;"
                     onclick="window.location.href='dashboard.html'"></div>
             </div>
         </div>
@@ -66,7 +68,7 @@
             if (session) {
                 if (btnLogin) btnLogin.style.display = 'none';
                 if (userAvatar) {
-                    userAvatar.style.display = 'flex'; // Flex to center initial
+                    userAvatar.style.display = 'flex'; // Enable flex for centering text
                     userAvatar.textContent = session.username.charAt(0).toUpperCase();
                 }
                 if (userMenu) userMenu.style.display = 'inline-block';
@@ -250,18 +252,25 @@
 
     <!-- Scripts -->
     <script>
-        // Fallback Toggle Function - GUARANTEED TO WORK
+        // Fallback Toggle Function
         function toggleChatFallback() {
             const win = document.getElementById('magicOshChatWindow');
             const bubble = document.getElementById('magicOshChatBubble');
-            if (win.style.opacity === '1') {
+
+            // Check computed style or inline style for opacity
+            // We use a simple toggle logic based on a class or attribute if possible, but style check is safer for fallback
+            const isVisible = win.style.opacity === '1';
+
+            if (isVisible) {
                 // Close
+                win.classList.remove('active');
                 win.style.opacity = '0';
                 win.style.transform = 'translateY(20px) scale(0.95)';
                 win.style.pointerEvents = 'none';
                 bubble.innerText = '💬';
             } else {
                 // Open
+                win.classList.add('active');
                 win.style.opacity = '1';
                 win.style.transform = 'translateY(0) scale(1)';
                 win.style.pointerEvents = 'auto';
