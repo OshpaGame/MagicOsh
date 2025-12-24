@@ -165,9 +165,10 @@
         </div>
 
         <div class="chat-widget-input">
-            <form id="chatWidgetForm">
+            <form id="chatWidgetForm" onsubmit="event.preventDefault();">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="submit">➤</button>
+                <button type="button"
+                    onclick="document.getElementById('chatWidgetForm').dispatchEvent(new Event('submit'))">➤</button>
             </form>
         </div>
 
