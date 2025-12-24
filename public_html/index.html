@@ -177,7 +177,7 @@
     </footer>
 
     <!-- GLOBAL CHAT WIDGET -->
-    <div id="magicOshChatBubble" onclick="toggleChatFallback()">💬</div>
+    <div id="magicOshChatBubble" onclick="window.toggleChatWidget()">💬</div>
 
     <div id="magicOshChatWindow">
         <div class="chat-widget-header">
@@ -195,10 +195,11 @@
         </div>
 
         <div class="chat-widget-input">
-            <!-- STRICT NO-SUBMIT FORM -->
+            <!-- BRUTE FORCE DIRECT EVENTS -->
             <form id="chatWidgetForm" onsubmit="return false;">
-                <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="button" id="chatWidgetSendBtn">➤</button>
+                <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off"
+                    onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); window.sendChatMsg(); }">
+                <button type="button" id="chatWidgetSendBtn" onclick="window.sendChatMsg()">➤</button>
             </form>
         </div>
 
@@ -234,29 +235,9 @@
                 }
             } catch (e) { console.error(e); }
         })();
-
-        function toggleChatFallback() {
-            const win = document.getElementById('magicOshChatWindow');
-            const bubble = document.getElementById('magicOshChatBubble');
-            const isVisible = win.style.opacity === '1';
-
-            if (isVisible) {
-                win.classList.remove('active');
-                win.style.opacity = '0';
-                win.style.transform = 'translateY(20px) scale(0.95)';
-                win.style.pointerEvents = 'none';
-                bubble.innerText = '💬';
-            } else {
-                win.classList.add('active');
-                win.style.opacity = '1';
-                win.style.transform = 'translateY(0) scale(1)';
-                win.style.pointerEvents = 'auto';
-                bubble.innerText = 'X';
-            }
-        }
     </script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=8"></script>
+    <script type="module" src="js/app.js?v=9"></script>
 </body>
 
 </html>
