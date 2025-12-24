@@ -80,7 +80,7 @@ export const initAuth = () => {
             // Show Avatar in Header
             if (userDisplayName) {
                 const initial = session.username ? session.username.charAt(0).toUpperCase() : 'U';
-                userDisplayName.innerHTML = `<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border: 1px solid rgba(255,255,255,0.5); cursor:pointer; display:flex;" onclick="document.getElementById('btnProfile').click()">${initial}</div>`;
+                userDisplayName.innerHTML = `<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border: 1px solid rgba(255,255,255,0.5); cursor:pointer; display:flex;" onclick="window.location.href='dashboard.html'">${initial}</div>`;
             }
 
             // Hide Chat Overlay

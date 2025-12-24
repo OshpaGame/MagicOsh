@@ -43,7 +43,7 @@
                 <div id="userMenu" class="user-menu" style="display: none; position: relative;">
                     <span id="userDisplayName" style="color: #fff; cursor: pointer; font-weight: 600;">Usuario</span>
                     <div class="dropdown-menu">
-                        <a href="#profile" id="btnProfile">Mi Perfil</a>
+                        <a href="dashboard.html">Mi Dashboard</a>
                         <a href="#" id="btnLogout" style="color: var(--color-neon-accent);">Cerrar Sesión</a>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                     // Pre-render avatar if possible
                     const user = JSON.parse(session);
                     if (name && user.username) {
-                        name.innerHTML = '<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border: 1px solid rgba(255,255,255,0.5); cursor:pointer; display:flex;" onclick="document.getElementById(\'btnProfile\').click()">' + user.username.charAt(0).toUpperCase() + '</div>';
+                        name.innerHTML = '<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border: 1px solid rgba(255,255,255,0.5); cursor:pointer; display:flex;" onclick="window.location.href=\'dashboard.html\'">' + user.username.charAt(0).toUpperCase() + '</div>';
                     }
                 }
             } catch (e) { console.error("Inline Auth Check Error", e); }
