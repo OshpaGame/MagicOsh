@@ -39,7 +39,7 @@
 
             <!-- Auth Buttons / User Menu -->
             <div class="auth-controls" style="margin-left: 2rem;">
-                <button id="btnLogin" class="btn btn-secondary btn-sm">Iniciar Sesión</button>
+                <a href="login.html" id="btnLogin" class="btn btn-secondary btn-sm">Iniciar Sesión</a>
                 <div id="userMenu" class="user-menu" style="display: none; position: relative;">
                     <span id="userDisplayName" style="color: #fff; cursor: pointer; font-weight: 600;">Usuario</span>
                     <div class="dropdown-menu">
@@ -52,49 +52,7 @@
     </header>
 
     <!-- Auth Modals -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-
-            <!-- Login Form -->
-            <form id="loginForm" class="auth-form active">
-                <h3>Bienvenido de nuevo</h3>
-                <div class="input-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="loginEmail" required placeholder="tu@email.com">
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="loginPassword" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
-                <p class="switch-auth">¿No tienes cuenta? <a href="#" id="showRegister">Regístrate</a></p>
-            </form>
-
-            <!-- Register Form -->
-            <form id="registerForm" class="auth-form">
-                <h3>Crear Cuenta</h3>
-                <div class="input-group">
-                    <label>Nombre de Usuario</label>
-                    <input type="text" id="regUsername" required placeholder="GamerPro2026">
-                </div>
-                <div class="input-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="regEmail" required placeholder="tu@email.com">
-                </div>
-                <div class="input-group">
-                    <label>Fecha de Nacimiento</label>
-                    <input type="date" id="regDob" required>
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="regPassword" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Crear Cuenta</button>
-                <p class="switch-auth">¿Ya tienes cuenta? <a href="#" id="showLogin">Entrar</a></p>
-            </form>
-        </div>
-    </div>
+    <!-- Auth Modals removed. Using login.html page now. -->
 
     <!-- Profile Modal -->
     <div id="profileModal" class="modal">

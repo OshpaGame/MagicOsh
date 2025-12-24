@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión | MagicOsh</title>
+
+    <!-- Reuse existing styles -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+
+    <style>
+        /* Specific Page Styles */
+        body {
+            background-color: var(--color-bg-deep);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(176, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 243, 255, 0.1) 0%, transparent 20%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+        }
+
+        .auth-card {
+            background: var(--color-bg-surface);
+            padding: 3rem;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(176, 0, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Glow Bar */
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-neon-primary), var(--color-neon-secondary));
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-area a {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .logo-area span {
+            color: var(--color-neon-primary);
+        }
+
+        /* Reuse form styles from auth.css but force display */
+        .auth-form {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .back-link a {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .back-link a:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <div class="logo-area">
+            <a href="index.html">Magic<span>Osh</span></a>
+        </div>
+
+        <div class="auth-card">
+
+            <!-- Login Form -->
+            <form id="loginFormPage" class="auth-form active">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #fff;">Bienvenido</h3>
+
+                <div class="input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="pageLoginEmail" required placeholder="tu@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="pageLoginPassword" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+
+                <p class="switch-auth">
+                    ¿No tienes cuenta? <a href="#" id="toRegister">Regístrate</a>
+                </p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerFormPage" class="auth-form">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #fff;">Crear Cuenta</h3>
+
+                <div class="input-group">
+                    <label>Usuario</label>
+                    <input type="text" id="pageRegUsername" required placeholder="GamerPro">
+                </div>
+                <div class="input-group">
+                    <label>Correo</label>
+                    <input type="email" id="pageRegEmail" required placeholder="tu@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Fecha Nacimiento</label>
+                    <input type="date" id="pageRegDob" required>
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="pageRegPassword" required placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Registrarse</button>
+
+                <p class="switch-auth">
+                    ¿Ya tienes cuenta? <a href="#" id="toLogin">Entrar</a>
+                </p>
+            </form>
+
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Volver al inicio</a>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module">
+        import { initAuthPage } from './js/modules/auth_page.js';
+
+        // Simple toggle logic specific for this page
+        const loginForm = document.getElementById('loginFormPage');
+        const regForm = document.getElementById('registerFormPage');
+        const toRegister = document.getElementById('toRegister');
+        const toLogin = document.getElementById('toLogin');
+
+        toRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.remove('active');
+            regForm.classList.add('active');
+        });
+
+        toLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            regForm.classList.remove('active');
+            loginForm.classList.add('active');
+        });
+
+        // Init Auth Logic
+        initAuthPage();
+    </script>
+</body>
+
+</html>
