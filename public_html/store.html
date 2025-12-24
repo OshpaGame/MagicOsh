@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MagicOsh - Scripts de Alto Rendimiento</title>
-    <meta name="description" content="Domina tus videojuegos con los mejores scripts de MagicOsh.">
+    <title>Tienda | MagicOsh</title>
+    <meta name="description" content="Scripts premium para dominar tus juegos.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,47 +20,6 @@
     <link rel="stylesheet" href="css/chat_widget.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/auth.css">
-
-    <style>
-        .highlight-text {
-            background: linear-gradient(90deg, var(--color-neon-primary), var(--color-neon-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: bold;
-        }
-
-        /* Donation Section Styles */
-        .donation-box {
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid var(--color-neon-secondary);
-            border-radius: var(--border-radius-lg);
-            padding: 3rem;
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .donate-btn {
-            background: #003087;
-            /* Paypal Blue ish */
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 30px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            transition: transform 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .donate-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 112, 186, 0.6);
-        }
-    </style>
 </head>
 
 <body>
@@ -71,13 +30,13 @@
             <a href="index.html" class="logo">Magic<span>Osh</span></a>
 
             <nav class="main-nav">
-                <a href="#" class="active">Inicio</a>
-                <a href="store.html">Tienda</a>
+                <a href="index.html">Inicio</a>
+                <a href="#" class="active">Tienda</a>
                 <a href="dashboard.html" id="userMenu" style="display:none;">Mi Dashboard</a>
             </nav>
 
             <div class="header-actions">
-                <a href="store.html" class="btn btn-primary btn-glow">VER SCRIPTS</a>
+                <a href="#" class="btn btn-primary btn-glow">VER SCRIPTS</a>
                 <a href="login.html" id="btnLogin" class="btn btn-secondary">Login</a>
                 <div id="userAvatar" class="avatar-circle"
                     style="display:none; cursor:pointer; width: 40px; height: 40px; min-width: 40px; font-size: 1.2rem; align-items: center; justify-content: center; margin-left: 1rem;"
@@ -112,91 +71,102 @@
     </script>
 
     <main>
-        <!-- Hero Section -->
-        <section class="hero-section">
+        <!-- Mini Hero -->
+        <section class="hero-section"
+            style="min-height: 40vh; padding-top: 150px; background: radial-gradient(circle at 50% 100%, rgba(176, 0, 255, 0.1) 0%, transparent 60%);">
             <div class="container hero-content">
-                <div class="hero-text-wrapper">
-                    <h1 class="hero-title">DOMINA EL CÓDIGO <br> <span class="highlight-text">CREA LEYENDAS</span></h1>
-                    <p class="hero-subtitle">Plataforma premium de scripts para desarrolladores de videojuegos. Potencia
-                        tus proyectos con una sola línea de código.</p>
-                    <div class="hero-buttons">
-                        <a href="store.html" class="btn btn-primary btn-lg">IR A LA TIENDA</a>
-                        <a href="store.html#new" class="btn btn-secondary btn-lg">NOVEDADES</a>
-                    </div>
-                </div>
+                <h1 class="hero-title" style="font-size: 3rem;">ARSENAL <span class="highlight-text">PREMIUM</span></h1>
+                <p class="hero-subtitle">Equípate con herramientas indetectables y de alto rendimiento.</p>
             </div>
-            <div class="hero-glow-back"></div>
         </section>
 
-        <!-- Features -->
-        <section class="section-padding" style="background: var(--color-bg-surface);">
+        <!-- Store Grid -->
+        <section id="store" class="section-padding">
             <div class="container">
-                <div class="section-title">
-                    <h2>¿POR QUÉ MAGICOSH?</h2>
-                </div>
+                <!-- Products Grid -->
                 <div class="grid-3">
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Rendimiento Nativo</h3>
-                        <p>Sin bloatware. Nuestros scripts están optimizados para consumir 0 recursos innecesarios.</p>
+                    <!-- Product 1 -->
+                    <div class="product-card">
+                        <div class="product-badge">🔥 Popular</div>
+                        <div class="product-image">
+                            <span>FPS CONTROLLER</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Pack Movimiento FPS</h3>
+                            <p class="product-desc">Controlador de personaje fluido con salto, agachado, slide y soporte
+                                para armas.</p>
+                            <div class="product-meta">
+                                <span class="price">$15.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn" data-product="FPS Pack">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h3>Seguridad Máxima</h3>
-                        <p>Protegemos tu inversión con sistemas de autenticación y ofuscación de última generación.</p>
+                    <!-- Product 2 -->
+                    <div class="product-card">
+                        <div class="product-badge">NEW</div>
+                        <div class="product-image" style="background: linear-gradient(45deg, #00f3ff, #0066ff);">
+                            <span>RPG SYSTEM</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Sistema RPG Core</h3>
+                            <p class="product-desc">Inventario, Stats, Quest System y diálogo listo para usar.</p>
+                            <div class="product-meta">
+                                <span class="price">$35.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn" data-product="RPG Core">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">💎</div>
-                        <h3>Calidad Premium</h3>
-                        <p>Usados por estudios indie y veteranos. Código limpio, documentado y listo para producción.
-                        </p>
+                    <!-- Product 3 -->
+                    <div class="product-card">
+                        <div class="product-image" style="background: linear-gradient(45deg, #ff0055, #ff00cc);">
+                            <span>MULTIPLAYER</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Netcode Starter</h3>
+                            <p class="product-desc">Sincronización lag-free, lobby system y matchmaking básico.</p>
+                            <div class="product-meta">
+                                <span class="price">$50.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn"
+                                    data-product="Netcode Starter">COMPRAR</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product 4 -->
+                    <div class="product-card">
+                        <div class="product-image" style="background: linear-gradient(45deg, #FFD700, #ff8c00);">
+                            <span>ANTI-CHEAT</span>
+                        </div>
+                        <div class="product-info">
+                            <h3>Escudo Anti-Cheat</h3>
+                            <p class="product-desc">Protección básica contra inyecciones de memoria y speedhacks.</p>
+                            <div class="product-meta">
+                                <span class="price">$25.00</span>
+                                <button class="btn btn-sm btn-primary buy-btn"
+                                    data-product="Anti-Cheat">COMPRAR</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
-
-        <!-- Community / Giveaway -->
-        <section id="giveaway" class="section-padding">
-            <div class="container">
-                <div class="cta-box">
-                    <div class="cta-content">
-                        <h2>ÚNETE A LA ÉLITE</h2>
-                        <p>Accede a zona VIP, sorteos mensuales y scripts exclusivos para miembros.</p>
-                        <form id="accessForm" class="access-form">
-                            <input type="text" id="accessCode" placeholder="Código de Invitación">
-                            <button type="submit" class="btn btn-primary">CANJEAR ACCESO</button>
-                        </form>
-                        <p id="accessMessage" style="margin-top: 1rem;"></p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Donations Section -->
-        <section id="donations" class="section-padding" style="background: var(--color-bg-surface-2);">
-            <div class="container">
-                <div class="section-title">
-                    <h2>APOYA EL PROYECTO</h2>
-                </div>
-                <div class="donation-box">
-                    <p style="margin-bottom: 2rem; color: var(--color-text-muted);">
-                        MagicOsh se mantiene gracias al apoyo de la comunidad. Si nuestros scripts te han ayudado a
-                        crear algo increíble, considera invitarnos un café (o un servidor).
-                    </p>
-                    <button class="donate-btn" onclick="window.open('https://paypal.me/oshpage', '_blank')">
-                        <span>💙</span> Donar con PayPal
-                    </button>
-                </div>
-            </div>
-        </section>
-
     </main>
 
     <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <a href="index.html" class="logo">Magic<span>Osh</span></a>
+                    <p style="color: var(--color-text-muted); margin-top: 1rem;">Tecnología superior.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Navegación</h4>
+                    <a href="index.html">Inicio</a>
+                    <a href="#">Tienda</a>
+                </div>
+            </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 MagicOsh Dev Team. Todos los derechos reservados.</p>
+                <p>&copy; 2026 MagicOsh.</p>
             </div>
         </div>
     </footer>
@@ -255,7 +225,7 @@
         }
     </script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=7"></script>
+    <script type="module" src="js/app.js?v=6"></script>
 </body>
 
 </html>
