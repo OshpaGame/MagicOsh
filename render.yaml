@@ -12,12 +12,12 @@ services:
       - key: NODE_ENV
         value: production
 
-  # 2. Frontend (Static Site as Web Service)
+  # 2. Frontend (Static Site)
+  # NOTE: Static sites on Render are global (CDN), so NO region defined.
   - type: web
     name: magicosh-web
     env: static
     plan: free
-    region: oregon 
     rootDir: public_html
     routes:
       - type: rewrite
