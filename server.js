@@ -88,16 +88,23 @@ async function sendNotificationEmail(data) {
     }
 }
 
+const https = require('https');
+
 // --- Keep-Alive Mechanism (Anti-Sleep for Render Free Tier) ---
 app.get('/health', (req, res) => res.send('I am alive!'));
 
 function keepAlive() {
     const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    const targetUrl = url.endsWith('/') ? `${url}health` : `${url}/health`;
 
     // Only ping if we are on Render (to avoid noise in local dev) or if forced
     if (process.env.RENDER_EXTERNAL_URL) {
-        console.log(`Sending Keep-Alive ping to ${url}/health`);
-        http.get(`${url}/health`, (res) => {
+        console.log(`Sending Keep-Alive ping to ${targetUrl}`);
+
+        // Pilih client yang sesuai (http atau https)
+        const client = targetUrl.startsWith('https') ? https : http;
+
+        client.get(targetUrl, (res) => {
             if (res.statusCode === 200) {
                 console.log('Keep-Alive success');
             } else {
