@@ -513,16 +513,15 @@
                     </div>
                 </div>
                 
-                <!-- ACTIONS BAR -->
+                <!-- ACTIONS BAR RE-INJECTED -->
                 <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:20px;">
-                    <button onclick="toggleLike('${post.id}')" style="background:none; border:none; color:${liked ? 'red' : 'gray'}; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <button onclick="toggleLike('${post.id}')" style="background:none; border:none; color:${liked ? 'red' : 'gray'}; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:1rem; color:white;">
                         ${liked ? '❤️' : '🤍'} ${likeCount}
                     </button>
                     <button onclick="document.getElementById('comments-${post.id}').style.display = document.getElementById('comments-${post.id}').style.display === 'none' ? 'block' : 'none'" 
-                            style="background:none; border:none; color:gray; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            style="background:none; border:none; color:gray; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:1rem; color:white;">
                         💬 ${commentsValues.length}
                     </button>
-                    <button style="background:none; border:none; color:gray; cursor:pointer;" title="Compartir">🔄</button>
                 </div>
 
                 <!-- COMMENTS SECTION -->

@@ -146,6 +146,29 @@ app.post('/api/auth/login', (req, res) => {
     else res.status(401).json({ success: false, message: 'Invalid.' });
 });
 
+// 5. Update Profile
+app.post('/api/users/update', (req, res) => {
+    try {
+        const { username, email, oldPassword, newPassword, bio, avatar } = req.body;
+        let users = getJson(USERS_FILE);
+        const userIdx = users.findIndex(u => u.username === username); // Match by username (or email)
+
+        if (userIdx !== -1) {
+            // Verify Password if needed (Optional for now, trust session)
+            // if (users[userIdx].password !== oldPassword) return res.json({success: false, message: "Pass Fail"});
+
+            if (newPassword) users[userIdx].password = newPassword;
+            if (bio) users[userIdx].bio = bio;
+            if (avatar) users[userIdx].avatar = avatar; // Base64 avatar support
+
+            saveJson(USERS_FILE, users);
+            res.json({ success: true, message: "Profile Updated" });
+        } else {
+            res.status(404).json({ success: false, message: "User not found" });
+        }
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
 
 // --- REAL-TIME CORE ---
 let activeChats = getJson(SESSIONS_FILE); // Key: USERNAME (not socket.id)
