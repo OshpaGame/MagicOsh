@@ -13,6 +13,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/chat_widget.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/auth.css">
 
@@ -234,6 +235,7 @@
     </main>
 
     <!-- Footer -->
+    <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-content">
@@ -246,12 +248,11 @@
                     <h4>Enlaces</h4>
                     <a href="#">Inicio</a>
                     <a href="#store">Tienda</a>
-                    <a href="#messaging">Mensajes</a>
                 </div>
                 <div class="footer-col">
                     <h4>Legal</h4>
-                    <a href="#">Términos de servicio</a>
-                    <a href="#">Política de privacidad</a>
+                    <a href="#">Términos</a>
+                    <a href="#">Privacidad</a>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -259,6 +260,38 @@
             </div>
         </div>
     </footer>
+
+    <!-- GLOBAL CHAT WIDGET (Static HTML) -->
+    <div id="magicOshChatBubble">💬</div>
+
+    <div id="magicOshChatWindow">
+        <div class="chat-widget-header">
+            <div style="display:flex; align-items:center;">
+                <span class="chat-status"></span>
+                <h4>Soporte en vivo</h4>
+            </div>
+        </div>
+
+        <div id="chatWidgetMessages">
+            <div class="msg support"
+                style="align-self: center; width: 100%; text-align: center; background: transparent; border: none; color: #888; font-size: 0.8rem; margin-top: 1rem;">
+                Bienvenido a MagicOsh.
+            </div>
+        </div>
+
+        <div class="chat-widget-input">
+            <form id="chatWidgetForm">
+                <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
+                <button type="submit">➤</button>
+            </form>
+        </div>
+
+        <div id="widgetLoginOverlay">
+            <h5 style="color:#fff; margin-bottom:1rem;">Inicia sesión para hablar</h5>
+            <button class="btn btn-primary btn-sm" type="button"
+                onclick="window.location.href='login.html'">Conectar</button>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
