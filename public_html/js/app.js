@@ -6,7 +6,7 @@
 import './modules/store.js';
 import './modules/messaging.js';
 import './modules/giveaway.js';
-import './modules/auth.js';
+import './modules/auth.js?v=2';
 
 console.log('MagicOsh App Initialized');
 

@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const https = require('https'); // For Keep-Alive
 const { Server } = require("socket.io");
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs'); // For DB Persistence
 
 const app = express();
 const server = http.createServer(app);
@@ -26,10 +28,6 @@ const io = new Server(server, {
 });
 
 // Email Transporter (BlinkOptimizer)
-/* 
-NOTE: You will need to set EMAIL_USER and EMAIL_PASS in Render Environment Variables
-Don't hardcode passwords here!
-*/
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -38,8 +36,36 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// --- Simple In-Memory Database (Volatile on Render Free) ---
-const usersDB = [];
+// --- File-Based Database Persistence ---
+// NOTE: On Render Free Tier, this file persists as long as the server runs.
+// It resets on new Deploys. For permanent storage, connect a MongoDB/Postgres.
+const DB_FILE = path.join(__dirname, 'users_db.json');
+
+function getUsers() {
+    if (!fs.existsSync(DB_FILE)) {
+        return [];
+    }
+    try {
+        const data = fs.readFileSync(DB_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (e) {
+        console.error("Error reading DB:", e);
+        return [];
+    }
+}
+
+function saveUser(user) {
+    const users = getUsers();
+    users.push(user);
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
+        console.log("User saved to DB file.");
+        return true;
+    } catch (e) {
+        console.error("Error saving to DB:", e);
+        return false;
+    }
+}
 
 // --- API Routes ---
 
@@ -47,13 +73,15 @@ const usersDB = [];
 app.post('/api/auth/register', (req, res) => {
     const { username, email, password, dob } = req.body;
 
+    const users = getUsers();
+
     // Check existing
-    if (usersDB.find(u => u.email === email)) {
+    if (users.find(u => u.email === email)) {
         return res.status(400).json({ success: false, message: 'El correo ya está registrado.' });
     }
 
     const newUser = { id: Date.now(), username, email, password, dob, createdAt: new Date() };
-    usersDB.push(newUser);
+    saveUser(newUser); // Persist to file
 
     console.log('New User Registered:', username);
     res.json({ success: true, user: { id: newUser.id, username, email } });
@@ -63,7 +91,8 @@ app.post('/api/auth/register', (req, res) => {
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
 
-    const user = usersDB.find(u => u.email === email && u.password === password);
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === password);
 
     if (user) {
         res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
@@ -71,6 +100,7 @@ app.post('/api/auth/login', (req, res) => {
         res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
     }
 });
+
 
 // --- Real-Time Logic ---
 io.on('connection', (socket) => {
@@ -122,8 +152,6 @@ async function sendNotificationEmail(data) {
     }
 }
 
-const https = require('https');
-
 // --- Keep-Alive Mechanism (Anti-Sleep for Render Free Tier) ---
 app.get('/health', (req, res) => res.send('I am alive!'));
 
@@ -160,4 +188,3 @@ server.listen(PORT, () => {
     // Initial ping
     setTimeout(keepAlive, 5000);
 });
-
