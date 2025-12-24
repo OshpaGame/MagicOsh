@@ -103,38 +103,76 @@ app.post('/api/auth/login', (req, res) => {
 
 
 // --- Real-Time Logic ---
+const activeChats = {}; // Store: { socketId: { email, history: [] } }
+
 io.on('connection', (socket) => {
     console.log('New User Connected:', socket.id);
 
+    // Init session store
+    activeChats[socket.id] = { email: null, history: [] };
+
     // Identify Client Type
     socket.on('identify', (data) => {
-        // data.type could be 'web_client', 'admin_windows', 'admin_android'
         socket.join(data.type);
         console.log(`Socket ${socket.id} identified as ${data.type}`);
+        if (data.type === 'web_client' && data.username) {
+            // Store username if needed
+            activeChats[socket.id].username = data.username;
+        }
     });
 
     // Handle Chat Message from Web
     socket.on('web_message', (msgData) => {
-        console.log('Message from Web:', msgData);
+        // Store Email if present
+        if (msgData.email) activeChats[socket.id].email = msgData.email;
 
-        // 1. Send to Admin Apps (Windows & Android)
-        // Append socketId so admin knows who to reply to
+        // Add to History
+        activeChats[socket.id].history.push(`[Usuario]: ${msgData.text}`);
+
+        // Send to Admins
         const adminPayload = { ...msgData, socketId: socket.id };
         io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('new_message', adminPayload);
-
-        // 2. Optional: Send Email Notification
-        // sendNotificationEmail(msgData);
     });
 
     // Handle Reply from Admin
     socket.on('admin_reply', (replyData) => {
-        console.log('Reply from Admin:', replyData);
-        // Send back to specific web user
+        // Add to History
+        if (activeChats[replyData.targetSocketId]) {
+            activeChats[replyData.targetSocketId].history.push(`[Soporte]: ${replyData.message}`);
+        }
+
+        // Send back to web user
         io.to(replyData.targetSocketId).emit('admin_response', replyData.message);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         console.log('User disconnected:', socket.id);
+
+        try {
+            const session = activeChats[socket.id];
+
+            // Check if we should email transcript
+            if (session && session.email && session.history.length > 0) {
+                console.log(`Sending Chat Transcript to ${session.email}...`);
+
+                const transcript = session.history.join('\n');
+
+                // Send Email via Nodemailer
+                await transporter.sendMail({
+                    from: '"MagicOsh Support" <blinkoptimizer.ft456@gmail.com>',
+                    to: session.email,
+                    subject: 'Tu historial de chat con MagicOsh',
+                    text: `Gracias por contactarnos. Aquí tienes una copia de tu conversación:\n\n${transcript}\n\nSaludos,\nEl equipo de MagicOsh.`
+                });
+
+                console.log('Transcript sent successfully.');
+            }
+        } catch (err) {
+            console.error('Error sending transcript:', err.message);
+        }
+
+        // Cleanup memory
+        delete activeChats[socket.id];
     });
 });
 

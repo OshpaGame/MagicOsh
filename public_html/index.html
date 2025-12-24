@@ -203,59 +203,7 @@
             </div>
         </section>
 
-        <!-- Messaging Section -->
-        <section id="messaging" class="messaging-section" style="padding: 4rem 0;">
-            <div class="container">
-                <div style="text-align: center; margin-bottom: 3rem;">
-                    <h2>Centro de <span class="text-gradient">Mensajes</span></h2>
-                    <p style="color: var(--color-text-muted);">Contacta directamente con el vendedor. Respuestas rápidas
-                        y soporte personalizado.</p>
-                </div>
-
-                <div class="chat-interface-wrapper"
-                    style="position: relative; max-width: 800px; margin: 0 auto; background: var(--color-bg-surface); border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.05); overflow: hidden;">
-
-                    <!-- Login Overlay -->
-                    <div id="chatLoginOverlay"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 16, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
-                        <h3 style="margin-bottom: 1rem;">Inicia sesión para chatear</h3>
-                        <p
-                            style="color: var(--color-text-muted); margin-bottom: 1.5rem; text-align: center; max-width: 80%;">
-                            Necesitas una cuenta para contactar con OshpaDev Support.</p>
-                        <button id="btnChatLogin" class="btn btn-primary">Iniciar Sesión / Registrarse</button>
-                    </div>
-
-                    <div class="chat-header"
-                        style="background: rgba(176, 0, 255, 0.1); padding: 1rem; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <div
-                            style="width: 40px; height: 40px; background: var(--color-neon-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-weight: bold;">
-                            M</div>
-                        <div>
-                            <h4 style="margin: 0; font-size: 1rem;">OshpaDev Support</h4>
-                            <span style="font-size: 0.8rem; color: var(--color-neon-success);">● En línea</span>
-                        </div>
-                    </div>
-
-                    <div class="chat-window" id="chatWindow" style="height: 300px; padding: 1rem; overflow-y: auto;">
-                        <!-- Messages will appear here -->
-                        <div class="message message-admin"
-                            style="background: var(--color-bg-surface-2); padding: 0.8rem; border-radius: 8px 8px 8px 0; max-width: 70%; margin-bottom: 1rem;">
-                            <p style="font-size: 0.9rem; margin-bottom: 0.3rem;">¡Hola! Soy OshpaDev. ¿En qué puedo
-                                ayudarte hoy?</p>
-                            <span style="font-size: 0.7rem; color: var(--color-text-muted);">Justo ahora</span>
-                        </div>
-                    </div>
-
-                    <form class="chat-input-area" id="messageForm"
-                        style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 0.5rem;">
-                        <input type="text" placeholder="Escribe tu mensaje aquí..." id="msgInput" required
-                            autocomplete="off"
-                            style="flex: 1; background: var(--color-bg-deep); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem; border-radius: var(--border-radius-sm); color: #fff; font-family: var(--font-main);">
-                        <button type="submit" class="btn btn-primary" style="padding: 0 1.5rem;">→</button>
-                    </form>
-                </div>
-            </div>
-        </section>
+        <!-- Messaging is now Global Widget -->
 
         <!-- Private Zone / Giveaway Section -->
         <section id="giveaway" class="giveaway-section" style="padding: 6rem 0; position: relative;">
