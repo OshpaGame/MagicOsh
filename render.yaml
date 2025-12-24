@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: magicosh-app
+    env: node
+    plan: free
+    region: oregon 
+    buildCommand: cd backend_server && npm install
+    startCommand: cd backend_server && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
