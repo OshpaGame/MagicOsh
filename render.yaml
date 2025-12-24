@@ -12,12 +12,12 @@ services:
       - key: NODE_ENV
         value: production
 
-  # 2. Frontend (Static Site)
-  - type: static
+  # 2. Frontend (Static Site as Web Service)
+  - type: web
     name: magicosh-web
     env: static
     plan: free
-    region: oregon
+    region: oregon 
     rootDir: public_html
     routes:
       - type: rewrite
