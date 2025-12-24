@@ -1,0 +1,41 @@
+:root {
+  /* --- Typography --- */
+  --font-main: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-display: 'Orbitron', sans-serif; /* For futuristic headers */
+
+  /* --- Colors: Neon Palette --- */
+  --color-bg-deep: #050510;       /* Deepest dark blue/black */
+  --color-bg-surface: #0a0a1a;    /* Slightly lighter for cards */
+  --color-bg-surface-2: #121225;  /* Secondary surface */
+
+  --color-text-main: #e0e0e0;     /* Off-white for readability */
+  --color-text-muted: #a0a0b0;    /* Muted text */
+
+  /* Neon Accents */
+  --color-neon-primary: #b000ff;  /* Electric Purple */
+  --color-neon-secondary: #00f3ff; /* Cyan */
+  --color-neon-accent: #ff0055;    /* Hot Pink */
+  --color-neon-success: #00ff9d;   /* Neon Green */
+
+  /* Glow Effects (Box Shadows & Text Shadows) */
+  --glow-primary: 0 0 10px rgba(176, 0, 255, 0.5), 0 0 20px rgba(176, 0, 255, 0.3);
+  --glow-secondary: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3);
+  --glow-accent: 0 0 10px rgba(255, 0, 85, 0.5), 0 0 20px rgba(255, 0, 85, 0.3);
+  --glow-text: 0 0 5px rgba(255, 255, 255, 0.5);
+
+  /* --- Spacing & Layout --- */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+  --spacing-xl: 8rem;
+
+  --container-width: 1200px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
+
+  /* --- Transitions --- */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease-in-out;
+}

@@ -1,0 +1,98 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Outfit:wght@300;400;600&display=swap');
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--color-bg-deep);
+    color: var(--color-text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #fff;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition-fast);
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Utilities */
+.container {
+    width: 90%;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-sm);
+}
+
+.text-gradient {
+    background: linear-gradient(to right, var(--color-neon-secondary), var(--color-neon-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(176, 0, 255, 0.2);
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    font-family: var(--font-display);
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: transparent;
+    border-color: var(--color-neon-primary);
+    color: var(--color-neon-primary);
+    box-shadow: 0 0 5px var(--color-neon-primary);
+}
+
+.btn-primary:hover {
+    background: var(--color-neon-primary);
+    color: #fff;
+    box-shadow: 0 0 20px var(--color-neon-primary);
+}
+
+.btn-secondary {
+    background: var(--color-bg-surface-2);
+    color: var(--color-text-main);
+    border: 1px solid var(--color-bg-surface);
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-neon-secondary);
+    color: var(--color-neon-secondary);
+    box-shadow: 0 0 10px var(--color-neon-secondary) inset;
+}
