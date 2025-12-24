@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad | MagicOsh</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+
+    <style>
+        /* COMMUNITY LAYOUT similar to Twitter/X */
+        body {
+            background-color: var(--color-bg-deep);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 2rem 1rem;
+            flex: 1;
+        }
+
+        /* LEFT SIDEBAR (Nav) */
+        .comm-sidebar {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+
+        .comm-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1rem;
+            color: var(--color-text-body);
+            text-decoration: none;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .comm-nav-btn:hover,
+        .comm-nav-btn.active {
+            background: rgba(176, 0, 255, 0.15);
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .comm-nav-btn.active {
+            font-weight: bold;
+            color: var(--color-neon-primary);
+        }
+
+        /* MAIN FEED */
+        .feed-container {
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 80vh;
+        }
+
+        .create-post-box {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+        }
+
+        .create-post-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            font-family: 'Rajdhani', sans-serif;
+            resize: none;
+            margin-bottom: 1rem;
+            min-height: 60px;
+        }
+
+        .create-post-textarea:focus {
+            outline: none;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .attach-btn {
+            color: var(--color-neon-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .attach-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        /* POST CARD */
+        .post-card {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .post-card:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .post-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #333, #111);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            border: 1px solid var(--color-neon-secondary);
+        }
+
+        .post-content {
+            flex: 1;
+        }
+
+        .post-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .post-header .username {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .post-header .handle {
+            color: var(--color-text-muted);
+        }
+
+        .post-text {
+            color: var(--color-text-body);
+            line-height: 1.5;
+            margin-bottom: 0.8rem;
+            white-space: pre-wrap;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 0.5rem;
+        }
+
+        /* RIGHT SIDEBAR */
+        .trends-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .layout-grid {
+                grid-template-columns: 80px 1fr;
+            }
+
+            .comm-nav-btn span {
+                display: none;
+            }
+
+            .trends-box {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Simplified Header for consistency, but Feed takes focus -->
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="index.html" class="logo">Magic<span>Osh</span></a>
+            <div id="userAvatarHeader" class="avatar-circle"
+                style="display:none; width: 40px; height: 40px; justify-content:center; align-items:center;"></div>
+        </div>
+    </header>
+
+    <div class="layout-grid">
+        <!-- Sidebar -->
+        <aside class="comm-sidebar">
+            <nav>
+                <a href="index.html" class="comm-nav-btn">🏠 <span>Inicio</span></a>
+                <a href="#" class="comm-nav-btn active">🌐 <span>Comunidad</span></a>
+                <a href="store.html" class="comm-nav-btn">🛒 <span>Tienda</span></a>
+                <a href="dashboard.html" class="comm-nav-btn">👤 <span>Perfil</span></a>
+                <br>
+                <a href="#" onclick="openDirectMessage()" class="btn btn-primary btn-glow"
+                    style="width:100%; text-align:center;">
+                    ✉️ Mensaje Privado
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Feed -->
+        <main class="feed-container">
+            <!-- Create Post -->
+            <div class="create-post-box">
+                <textarea id="postInput" class="create-post-textarea"
+                    placeholder="¿Qué estás desarrollando hoy?"></textarea>
+
+                <!-- Image Preview -->
+                <div id="imagePreview" style="display:none; position:relative; margin-bottom:1rem;">
+                    <img id="previewImg" src="" style="max-height: 200px; border-radius:10px;">
+                    <button onclick="clearImage()"
+                        style="position:absolute; top:5px; left:5px; background:red; color:white; border:none; border-radius:50%; width:25px; height:25px; cursor:pointer;">x</button>
+                </div>
+
+                <div class="post-actions">
+                    <label class="attach-btn" title="Subir Imagen">
+                        📷 <input type="file" id="fileInput" accept="image/*" style="display:none"
+                            onchange="handleImageSelect(this)">
+                    </label>
+                    <button class="btn btn-primary btn-sm" onclick="submitPost()">PUBLICAR</button>
+                </div>
+            </div>
+
+            <!-- Feed Stream -->
+            <div id="feedStream">
+                <!-- Posts will be injected here via JS -->
+                <div style="padding:2rem; text-align:center; color:gray;">Cargando feed...</div>
+            </div>
+        </main>
+
+        <!-- Right Side -->
+        <aside>
+            <div class="trends-box">
+                <h4 style="color:white; margin-bottom:1rem;">Novedades</h4>
+                <p style="color:#888; font-size:0.9rem;">El sistema de comunidad está en beta. ¡Sé respetuoso!</p>
+                <hr style="border-color:rgba(255,255,255,0.05); margin:1rem 0;">
+                <p style="color:var(--color-neon-primary);">#MagicOshDev</p>
+                <p style="color:var(--color-neon-primary);">#GameDev</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- DIRECT MESSAGE MODAL (Replaces Widget) -->
+    <div id="dmModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div
+            style="background:var(--color-bg-surface); width:500px; height:600px; border-radius:20px; border:1px solid var(--color-neon-primary); display:flex; flex-direction:column; overflow:hidden;">
+            <div
+                style="padding:1rem; background:rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:white; margin:0;">Soporte Directo</h3>
+                <button onclick="document.getElementById('dmModal').style.display='none'"
+                    style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="dmMessages"
+                style="flex:1; padding:1rem; overflow-y:auto; display:flex; flex-direction:column; gap:0.5rem;">
+                <div style="color:gray; text-align:center;">Conectando con Oshpa...</div>
+            </div>
+            <div style="padding:1rem; background:rgba(0,0,0,0.3); display:flex; gap:10px;">
+                <input type="text" id="dmInput"
+                    style="flex:1; background:#222; border:none; color:white; padding:10px; border-radius:5px;"
+                    placeholder="Escribe aquí...">
+                <button onclick="sendDM()" class="btn btn-primary btn-sm">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // --- 1. POST LOGIC ---
+        let selectedImageBase64 = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPosts();
+            checkAuth();
+        });
+
+        function checkAuth() {
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const av = document.getElementById('userAvatarHeader');
+            if (av) {
+                av.style.display = 'flex';
+                av.textContent = session.username.charAt(0).toUpperCase();
+            }
+        }
+
+        function handleImageSelect(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    selectedImageBase64 = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearImage() {
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('fileInput').value = "";
+            selectedImageBase64 = null;
+        }
+
+        async function submitPost() {
+            const text = document.getElementById('postInput').value.trim();
+            if (!text && !selectedImageBase64) return;
+
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+
+            try {
+                const res = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: session.username,
+                        text: text,
+                        image: selectedImageBase64,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (res.ok) {
+                    document.getElementById('postInput').value = "";
+                    clearImage();
+                    loadPosts(); // Refresh feed
+                } else {
+                    alert("Error publicando");
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadPosts() {
+            try {
+                const res = await fetch('/api/posts');
+                const posts = await res.json();
+                renderFeed(posts);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('feedStream').innerHTML = '<p style="text-align:center;">Error cargando posts.</p>';
+            }
+        }
+
+        function renderFeed(posts) {
+            const container = document.getElementById('feedStream');
+            container.innerHTML = "";
+
+            posts.reverse().forEach(post => { // Newest first
+                const card = document.createElement('div');
+                card.className = "post-card";
+
+                let imgHtml = "";
+                if (post.image) {
+                    imgHtml = `<img src="${post.image}" class="post-image" loading="lazy">`;
+                }
+
+                const date = new Date(post.timestamp).toLocaleDateString() + " " + new Date(post.timestamp).toLocaleTimeString();
+
+                card.innerHTML = `
+                    <div class="post-avatar">${post.username.charAt(0).toUpperCase()}</div>
+                    <div class="post-content">
+                        <div class="post-header">
+                            <span class="username">${post.username}</span>
+                            <span class="handle" style="font-size:0.8rem;">• ${date}</span>
+                        </div>
+                        <div class="post-text">${post.text}</div>
+                        ${imgHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- 2. DM / CHAT LOGIC (Reused from Widget but isolated) ---
+        let socket = null;
+
+        function openDirectMessage() {
+            document.getElementById('dmModal').style.display = 'flex';
+            if (!socket) initSocket();
+        }
+
+        function initSocket() {
+            socket = io();
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+
+            socket.on('connect', () => {
+                socket.emit('identify', { type: 'web_client', username: session.username });
+                addDmMsg('support', "Conectado. Escribe a Oshpa.");
+            });
+
+            socket.on('admin_response', (msg) => {
+                addDmMsg('support', msg);
+            });
+        }
+
+        function sendDM() {
+            const input = document.getElementById('dmInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            socket.emit('web_message', {
+                username: session.username,
+                text: val,
+                email: session.email
+            });
+
+            addDmMsg('user', val);
+            input.value = "";
+        }
+
+        function addDmMsg(type, text) {
+            const box = document.getElementById('dmMessages');
+            const div = document.createElement('div');
+            div.style.padding = "10px";
+            div.style.borderRadius = "10px";
+            div.style.maxWidth = "80%";
+            div.style.marginBottom = "5px";
+
+            if (type === 'user') {
+                div.style.background = "var(--color-neon-primary)";
+                div.style.alignSelf = "flex-end";
+                div.style.color = "black";
+                div.style.textAlign = "right";
+                div.style.marginLeft = "auto";
+            } else {
+                div.style.background = "#333";
+                div.style.alignSelf = "flex-start";
+                div.style.color = "white";
+            }
+            div.textContent = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+    </script>
+</body>
+
+</html>
