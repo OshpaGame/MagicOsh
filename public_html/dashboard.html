@@ -179,9 +179,9 @@
 
         <div class="chat-widget-input">
             <!-- FORM ACTION BLINDADO -->
-            <form id="chatWidgetForm" action="javascript:void(0);">
+            <form id="chatWidgetForm" onsubmit="return false;">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="submit">➤</button>
+                <button type="button" id="chatWidgetSendBtn">➤</button>
             </form>
         </div>
 

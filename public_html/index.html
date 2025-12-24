@@ -195,10 +195,10 @@
         </div>
 
         <div class="chat-widget-input">
-            <!-- ACTION JAVASCRIPT:VOID(0) IS THE KEY TO PREVENT RELOAD -->
-            <form id="chatWidgetForm" action="javascript:void(0);">
+            <!-- STRICT NO-SUBMIT FORM -->
+            <form id="chatWidgetForm" onsubmit="return false;">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="submit">➤</button>
+                <button type="button" id="chatWidgetSendBtn">➤</button>
             </form>
         </div>
 
