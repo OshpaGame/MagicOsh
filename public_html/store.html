@@ -45,31 +45,6 @@
         </div>
     </header>
 
-    <!-- Inline script for immediate Auth State -->
-    <script>
-        (function () {
-            const session = JSON.parse(localStorage.getItem('magicOshSession'));
-            const btnLogin = document.getElementById('btnLogin');
-            const userAvatar = document.getElementById('userAvatar');
-            const userMenu = document.getElementById('userMenu');
-
-            const widgetOverlay = document.getElementById('widgetLoginOverlay');
-            const widgetHeader = document.querySelector('.chat-widget-header h4');
-
-            if (session) {
-                if (btnLogin) btnLogin.style.display = 'none';
-                if (userAvatar) {
-                    userAvatar.style.display = 'flex';
-                    userAvatar.textContent = session.username.charAt(0).toUpperCase();
-                }
-                if (userMenu) userMenu.style.display = 'inline-block';
-
-                if (widgetOverlay) widgetOverlay.style.display = 'none';
-                if (widgetHeader) widgetHeader.textContent = `Chat de ${session.username}`;
-            }
-        })();
-    </script>
-
     <main>
         <!-- Mini Hero -->
         <section class="hero-section"
@@ -205,6 +180,33 @@
 
     <!-- Scripts -->
     <script>
+        // AUTH CHECK - CORRECTLY PLACED AT BOTTOM
+        (function () {
+            try {
+                const session = JSON.parse(localStorage.getItem('magicOshSession'));
+                const btnLogin = document.getElementById('btnLogin');
+                const userAvatar = document.getElementById('userAvatar');
+                const userMenu = document.getElementById('userMenu');
+
+                const widgetOverlay = document.getElementById('widgetLoginOverlay');
+                const widgetHeader = document.querySelector('.chat-widget-header h4');
+
+                if (session) {
+                    // Header Actions
+                    if (btnLogin) btnLogin.style.display = 'none';
+                    if (userAvatar) {
+                        userAvatar.style.display = 'flex';
+                        userAvatar.textContent = session.username.charAt(0).toUpperCase();
+                    }
+                    if (userMenu) userMenu.style.display = 'inline-block';
+
+                    // Chat Widget Actions
+                    if (widgetOverlay) widgetOverlay.style.display = 'none';
+                    if (widgetHeader) widgetHeader.textContent = `Chat de ${session.username}`;
+                }
+            } catch (e) { console.error(e); }
+        })();
+
         function toggleChatFallback() {
             const win = document.getElementById('magicOshChatWindow');
             const bubble = document.getElementById('magicOshChatBubble');
