@@ -195,10 +195,10 @@
         </div>
 
         <div class="chat-widget-input">
-            <form id="chatWidgetForm" onsubmit="event.preventDefault();">
+            <!-- ACTION JAVASCRIPT:VOID(0) IS THE KEY TO PREVENT RELOAD -->
+            <form id="chatWidgetForm" action="javascript:void(0);">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="button"
-                    onclick="document.getElementById('chatWidgetForm').dispatchEvent(new Event('submit'))">➤</button>
+                <button type="submit">➤</button>
             </form>
         </div>
 
@@ -211,7 +211,7 @@
 
     <!-- Scripts -->
     <script>
-        // AUTH CHECK - CORRECTLY PLACED AT BOTTOM
+        // AUTH CHECK
         (function () {
             try {
                 const session = JSON.parse(localStorage.getItem('magicOshSession'));
@@ -223,21 +223,16 @@
                 const widgetHeader = document.querySelector('.chat-widget-header h4');
 
                 if (session) {
-                    // Header Actions
                     if (btnLogin) btnLogin.style.display = 'none';
                     if (userAvatar) {
                         userAvatar.style.display = 'flex';
                         userAvatar.textContent = session.username.charAt(0).toUpperCase();
                     }
                     if (userMenu) userMenu.style.display = 'inline-block';
-
-                    // Chat Widget Actions (Now Elements EXIST!)
                     if (widgetOverlay) widgetOverlay.style.display = 'none';
                     if (widgetHeader) widgetHeader.textContent = `Chat de ${session.username}`;
                 }
-            } catch (e) {
-                console.error("Auth script error:", e);
-            }
+            } catch (e) { console.error(e); }
         })();
 
         function toggleChatFallback() {
@@ -261,7 +256,7 @@
         }
     </script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="module" src="js/app.js?v=7"></script>
+    <script type="module" src="js/app.js?v=8"></script>
 </body>
 
 </html>

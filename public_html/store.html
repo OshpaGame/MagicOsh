@@ -165,10 +165,10 @@
         </div>
 
         <div class="chat-widget-input">
-            <form id="chatWidgetForm" onsubmit="event.preventDefault();">
+            <!-- FORM ACTION BLINDADO -->
+            <form id="chatWidgetForm" action="javascript:void(0);">
                 <input type="text" id="chatWidgetInput" placeholder="Escribe tu mensaje..." autocomplete="off">
-                <button type="button"
-                    onclick="document.getElementById('chatWidgetForm').dispatchEvent(new Event('submit'))">➤</button>
+                <button type="submit">➤</button>
             </form>
         </div>
 
@@ -181,7 +181,7 @@
 
     <!-- Scripts -->
     <script>
-        // AUTH CHECK - CORRECTLY PLACED AT BOTTOM
+        // AUTH CHECK
         (function () {
             try {
                 const session = JSON.parse(localStorage.getItem('magicOshSession'));
@@ -193,15 +193,12 @@
                 const widgetHeader = document.querySelector('.chat-widget-header h4');
 
                 if (session) {
-                    // Header Actions
                     if (btnLogin) btnLogin.style.display = 'none';
                     if (userAvatar) {
                         userAvatar.style.display = 'flex';
                         userAvatar.textContent = session.username.charAt(0).toUpperCase();
                     }
                     if (userMenu) userMenu.style.display = 'inline-block';
-
-                    // Chat Widget Actions
                     if (widgetOverlay) widgetOverlay.style.display = 'none';
                     if (widgetHeader) widgetHeader.textContent = `Chat de ${session.username}`;
                 }
@@ -212,6 +209,7 @@
             const win = document.getElementById('magicOshChatWindow');
             const bubble = document.getElementById('magicOshChatBubble');
             const isVisible = win.style.opacity === '1';
+
             if (isVisible) {
                 win.classList.remove('active');
                 win.style.opacity = '0';
