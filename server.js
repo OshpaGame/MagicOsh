@@ -13,10 +13,9 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 
-// Serve Static Files (The Website) - REMOVED
-// Backend is now dedicated API/Socket only.
-// Frontend will be hosted as a separate Static Site.
-app.get('/', (req, res) => res.send('MagicOsh API Server Running'));
+// Serve Static Files (The Website)
+// This allows Render to host BOTH the site and the API/Socket
+app.use(express.static(path.join(__dirname, 'public_html')));
 
 // Socket.io Setup
 const io = new Server(server, {

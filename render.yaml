@@ -1,25 +1,11 @@
 services:
-  # 1. Backend API (Node.js)
   - type: web
-    name: magicosh-api
+    name: magicosh-app
     env: node
     plan: free
-    region: oregon
-    rootDir: backend_server
+    region: oregon 
     buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
-
-  # 2. Frontend (Static Site)
-  # NOTE: Static sites on Render are global (CDN), so NO region defined.
-  - type: web
-    name: magicosh-web
-    env: static
-    plan: free
-    rootDir: public_html
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
