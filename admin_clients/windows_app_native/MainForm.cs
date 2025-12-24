@@ -66,18 +66,40 @@ namespace MagicOshAdmin {
             
             // Header
             Panel headerPanel = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
-            lblActiveUser = new Label { Text = "Sin Selección", Dock = DockStyle.Left, Width=400, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.White };
             
-            // Stats Label (Top Right)
-            lblStats = new Label { Text = "Visitas: 0 | Online: 0", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, ForeColor = Color.Orange, Font = new Font("Consolas", 10) };
+            lblActiveUser = new Label { Text = "Sin Selección", Dock = DockStyle.Left, Width=350, TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.White };
+            
+            // Stats (Centered)
+            lblStats = new Label { Text = "CARGANDO DATOS...", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.Orange, Font = new Font("Consolas", 11, FontStyle.Bold) };
 
-            btnCloseChat = new Button { Text = "FINALIZAR SESIÓN", Dock = DockStyle.Right, Width = 140, BackColor = Color.Crimson, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
+            btnCloseChat = new Button { Text = "FINALIZAR", Dock = DockStyle.Right, Width = 120, BackColor = Color.Crimson, FlatStyle = FlatStyle.Flat, ForeColor = Color.White, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
             btnCloseChat.Click += BtnCloseChat_Click;
             btnCloseChat.Visible = false;
 
-            headerPanel.Controls.Add(lblStats); // Middle
-            headerPanel.Controls.Add(lblActiveUser); // Lefter
-            headerPanel.Controls.Add(btnCloseChat); // Righter
+            // ORDER MATTERS FOR DOCKING:
+            // 1. Right (Button)
+            // 2. Left (Title)
+            // 3. Fill (Stats - takes remaining center space)
+            headerPanel.Controls.Add(lblStats);     // 3. Fill
+            headerPanel.Controls.Add(lblActiveUser);// 2. Left
+            headerPanel.Controls.Add(btnCloseChat); // 1. Right attached first? No, Add order is Z-order. 
+            // Correct logic: Add items. Dock prioritizes items added *last*? No.
+            // Let's clear and re-add in reverse priority or just use BringToFront.
+            // Actually, simpler:
+            headerPanel.Controls.Clear();
+            headerPanel.Controls.Add(lblStats); // Fill last?
+            headerPanel.Controls.Add(btnCloseChat); // Add these first so they claim edges?
+            headerPanel.Controls.Add(lblActiveUser);
+            // Wait, Docking eats space in order of addition.
+            // WE WANT: 
+            // 1. Button eats Right.
+            // 2. User eats Left.
+            // 3. Stats eats Fill.
+            // SO ADD ORDER: Button, User, Stats.
+            headerPanel.Controls.Clear();
+            headerPanel.Controls.Add(btnCloseChat); // Right
+            headerPanel.Controls.Add(lblActiveUser); // Left
+            headerPanel.Controls.Add(lblStats);      // Fill
 
             // Input Area
             Panel inputPanel = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.FromArgb(25, 25, 35), Padding = new Padding(10) };
@@ -217,9 +239,9 @@ namespace MagicOshAdmin {
                         string base64 = Convert.ToBase64String(bytes);
                         string safeName = Path.GetFileName(ofd.FileName);
 
-                        // Checks size (approx 50MB limit on server)
-                        if(bytes.Length > 45 * 1024 * 1024) {
-                             MessageBox.Show("Archivo demasiado grande. Máximo 45MB."); return;
+                        // INCREASED LIMIT TO 512MB
+                        if(bytes.Length > 512 * 1024 * 1024) {
+                             MessageBox.Show("Archivo demasiado grande. Máximo 512MB."); return;
                         }
 
                         var payload = new { targetSocketId = activeSocketId, fileName = safeName, fileBase64 = base64 };

@@ -11,20 +11,18 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Config CORS & BODY PARSER FOR IMAGES
+// Config CORS & BODY PARSER FOR IMAGES (HUGE LIMITS)
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increased for Base64 Community Images
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '1024mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1024mb' }));
 
 // Serve Static Files
 app.use(express.static(path.join(__dirname, 'public_html')));
 
-// Socket.io Setup
+// Socket.io Setup (Allow 1GB Buffer for 500MB files)
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    maxHttpBufferSize: 1e9,
+    cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
 // Email Transporter
@@ -104,15 +102,21 @@ let activeChats = getJson(SESSIONS_FILE);
 // Clean up old sockets from memory structure (but allow re-connect)
 Object.keys(activeChats).forEach(k => { activeChats[k].connected = false; });
 
+// Helper: Count ONLY connected Web Clients
+function getOnlineWebCount() {
+    return Object.values(activeChats).filter(s => s.connected && s.type === 'web_client').length;
+}
+
 io.on('connection', (socket) => {
     // 1. Update Visits Stat
     const stats = getJson(STATS_FILE);
     stats.total_visits = (stats.total_visits || 0) + 1;
     saveJson(STATS_FILE, stats);
-    // Broadcast stats to admins
+
+    // Broadcast REAL stats
     io.to('admin_room').emit('stats_update', {
         total_visits: stats.total_visits,
-        online_users: io.engine.clientsCount
+        online_users: getOnlineWebCount()
     });
 
     socket.on('identify', (data) => {
@@ -127,7 +131,7 @@ io.on('connection', (socket) => {
             // Send Stats
             socket.emit('stats_update', {
                 total_visits: stats.total_visits,
-                online_users: io.engine.clientsCount
+                online_users: getOnlineWebCount()
             });
         }
         else if (data.type === 'web_client') {
@@ -151,6 +155,11 @@ io.on('connection', (socket) => {
 
             // Notify Admin
             io.to('admin_room').emit('user_connected', activeChats[socket.id]);
+            // Force Stat Update
+            io.to('admin_room').emit('stats_update', {
+                total_visits: stats.total_visits,
+                online_users: getOnlineWebCount()
+            });
         }
     });
 

@@ -419,11 +419,19 @@
                 addDmMsg('support', msg);
             });
 
-            // Admin Response (File)
+            // Admin Response (Full HTML support for files)
             socket.on('admin_file_receive', (data) => {
-                // data: { fileName, fileData (base64) }
-                const link = `<a href="data:application/octet-stream;base64,${data.fileData}" download="${data.fileName}" style="color:cyan;text-decoration:underline;">📎 Descargar: ${data.fileName}</a>`;
-                addDmMsg('support', link);
+                const link = `<div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:2rem;">📎</span>
+                                <div>
+                                    <div style="font-weight:bold; color:cyan;">Archivo recibido</div>
+                                    <a href="data:application/octet-stream;base64,${data.fileData}" download="${data.fileName}" 
+                                       style="color:white; text-decoration:underline;">
+                                       Descargar ${data.fileName}
+                                    </a>
+                                </div>
+                              </div>`;
+                addDmMsg('support', link, true);
             });
         }
 
@@ -443,7 +451,7 @@
             input.value = "";
         }
 
-        function addDmMsg(type, text) {
+        function addDmMsg(type, text, isHtml = false) {
             const box = document.getElementById('dmMessages');
             const div = document.createElement('div');
             div.style.padding = "10px";
@@ -462,7 +470,10 @@
                 div.style.alignSelf = "flex-start";
                 div.style.color = "white";
             }
-            div.textContent = text;
+
+            if (isHtml) div.innerHTML = text;
+            else div.textContent = text;
+
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
         }
