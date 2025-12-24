@@ -4,7 +4,7 @@
  */
 
 import './modules/store.js';
-import './modules/messaging.js';
+import './modules/messaging.js?v=4';
 import './modules/giveaway.js';
 import './modules/auth.js?v=3';
 
