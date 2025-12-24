@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Registro Exitoso! | MagicOsh</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            background-color: var(--color-bg-deep);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .success-card {
+            background: var(--color-bg-surface);
+            padding: 4rem;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--color-neon-success);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.2);
+            max-width: 500px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-card">
+        <span class="icon">🚀</span>
+        <h1 style="color: #fff; margin-bottom: 1rem;">¡Bienvenido a Bordo!</h1>
+        <p style="color: var(--color-text-muted); margin-bottom: 2rem;">Tu cuenta ha sido creada exitosamente. Ya eres
+            parte de la élite de MagicOsh.</p>
+
+        <a href="dashboard.html" class="btn btn-primary" style="width: 100%; display: block;">Ir a mi Dashboard</a>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | MagicOsh</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css"> <!-- Reusing avatar styles -->
+    <style>
+        body {
+            background-color: var(--color-bg-deep);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--color-bg-surface);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .sidebar-logo span {
+            color: var(--color-neon-primary);
+        }
+
+        .nav-item {
+            padding: 1rem;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(176, 0, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+        }
+
+        .header-dash {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-text h2 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text p {
+            color: var(--color-text-muted);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .script-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: var(--border-radius-md);
+        }
+
+        .script-card h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--color-neon-success);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">Magic<span>Osh</span></div>
+
+        <nav>
+            <a href="#" class="nav-item active">📦 Mis Scripts</a>
+            <a href="#" class="nav-item">⚙️ Configuración</a>
+            <a href="index.html" class="nav-item">🏠 Volver al Inicio</a>
+            <div style="margin-top: auto;">
+                <a href="#" id="btnLogout" class="nav-item" style="color: var(--color-neon-accent);">🚪 Cerrar
+                    Sesión</a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="header-dash">
+            <div class="welcome-text">
+                <h2 id="dashUsername">Hola, Gamer</h2>
+                <p>Aquí tienes tus herramientas.</p>
+            </div>
+            <div class="avatar-circle" id="dashAvatar" style="width: 50px; height: 50px; font-size: 1.5rem; margin: 0;">
+                M</div>
+        </div>
+
+        <h3 style="color: #fff; margin-bottom: 1.5rem;">Mis Adquisiciones</h3>
+
+        <div class="dashboard-grid">
+            <!-- Demo Item -->
+            <div class="script-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                    <span style="font-size: 2rem;">🎁</span>
+                    <span class="status-badge">Gratis</span>
+                </div>
+                <h4>Pack de Iniciación</h4>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Scripts básicos de
+                    movimiento y cámara.</p>
+                <button class="btn btn-secondary btn-sm" style="width: 100%;">Descargar v1.0</button>
+            </div>
+
+            <!-- Placeholder for purchased items -->
+            <div class="script-card"
+                style="border-style: dashed; display: flex; align-items: center; justify-content: center; flex-direction: column; opacity: 0.5;">
+                <p>No tienes más scripts</p>
+                <a href="index.html#store" style="color: var(--color-neon-primary); margin-top: 0.5rem;">Ir a la
+                    Tienda</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simple Dashboard Logic
+        const session = JSON.parse(localStorage.getItem('magicOshSession'));
+        if (!session) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('dashUsername').textContent = 'Hola, ' + session.username;
+            document.getElementById('dashAvatar').textContent = session.username.charAt(0).toUpperCase();
+        }
+
+        document.getElementById('btnLogout').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('magicOshSession');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+
+</html>

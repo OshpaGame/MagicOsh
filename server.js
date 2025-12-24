@@ -38,6 +38,40 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// --- Simple In-Memory Database (Volatile on Render Free) ---
+const usersDB = [];
+
+// --- API Routes ---
+
+// Register
+app.post('/api/auth/register', (req, res) => {
+    const { username, email, password, dob } = req.body;
+
+    // Check existing
+    if (usersDB.find(u => u.email === email)) {
+        return res.status(400).json({ success: false, message: 'El correo ya está registrado.' });
+    }
+
+    const newUser = { id: Date.now(), username, email, password, dob, createdAt: new Date() };
+    usersDB.push(newUser);
+
+    console.log('New User Registered:', username);
+    res.json({ success: true, user: { id: newUser.id, username, email } });
+});
+
+// Login
+app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+
+    const user = usersDB.find(u => u.email === email && u.password === password);
+
+    if (user) {
+        res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
+    } else {
+        res.status(401).json({ success: false, message: 'Credenciales inválidas.' });
+    }
+});
+
 // --- Real-Time Logic ---
 io.on('connection', (socket) => {
     console.log('New User Connected:', socket.id);

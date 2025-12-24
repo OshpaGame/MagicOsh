@@ -174,7 +174,8 @@ export const initAuth = () => {
         if (session) {
             btnLogin.style.display = 'none';
             userMenu.style.display = 'block';
-            userDisplayName.textContent = session.username;
+            // Show Avatar Circle instead of just text
+            userDisplayName.innerHTML = `<div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0; box-shadow: none; border-width: 1px;">${session.username.charAt(0).toUpperCase()}</div>`;
         } else {
             btnLogin.style.display = 'block';
             userMenu.style.display = 'none';
