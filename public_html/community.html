@@ -460,30 +460,110 @@
                     addDmMsg(isSupport ? 'support' : 'user', content, isHtml);
                 });
             });
+
+            // LIVE POST UPDATE (Likes/Comments)
+            socket.on('post_update', (updatedPost) => {
+                const existingCard = document.getElementById('post-' + updatedPost.id);
+                if (existingCard) {
+                    const newCard = createPostCard(updatedPost);
+                    existingCard.replaceWith(newCard);
+                }
+            });
+
+            // FORCE REFRESH LISTENER
+            socket.on('force_client_refresh', () => {
+                location.reload();
+            });
         }
 
         function createPostCard(post) {
             const card = document.createElement('div');
             card.className = "post-card";
-            card.style.animation = "fadeIn 0.5s ease-out"; // Nice effect
+            card.id = "post-" + post.id;
+            card.style.flexDirection = "column"; // Allow comments below
+
+            const session = JSON.parse(localStorage.getItem('magicOshSession')) || {};
+            const liked = post.likes && post.likes.includes(session.username);
+            const likeCount = post.likes ? post.likes.length : 0;
+            const commentsValues = post.comments || [];
 
             let imgHtml = "";
             if (post.image) imgHtml = `<img src="${post.image}" class="post-image" loading="lazy">`;
 
             const date = new Date(post.timestamp).toLocaleDateString() + " " + new Date(post.timestamp).toLocaleTimeString();
 
+            // COMMENT HTML GENERATION
+            let commentsHtml = commentsValues.map(c =>
+                `<div style="display:flex; gap:10px; margin-top:5px; padding:5px; background:rgba(255,255,255,0.05); border-radius:5px;">
+                    <strong style="color:cyan;">${c.username}:</strong> 
+                    <span style="color:#ddd;">${c.text}</span>
+                 </div>`
+            ).join('');
+
             card.innerHTML = `
-                <div class="post-avatar">${post.username.charAt(0).toUpperCase()}</div>
-                <div class="post-content">
-                    <div class="post-header">
-                        <span class="username">${post.username}</span>
-                        <span class="handle" style="font-size:0.8rem;">• ${date}</span>
+                <div style="display:flex; gap:1rem;"> 
+                    <div class="post-avatar">${post.username.charAt(0).toUpperCase()}</div>
+                    <div class="post-content">
+                        <div class="post-header">
+                            <span class="username">${post.username}</span>
+                            <span class="handle" style="font-size:0.8rem;">• ${date}</span>
+                        </div>
+                        <div class="post-text">${post.text}</div>
+                        ${imgHtml}
                     </div>
-                    <div class="post-text">${post.text}</div>
-                    ${imgHtml}
+                </div>
+                
+                <!-- ACTIONS BAR -->
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:20px;">
+                    <button onclick="toggleLike('${post.id}')" style="background:none; border:none; color:${liked ? 'red' : 'gray'}; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        ${liked ? '❤️' : '🤍'} ${likeCount}
+                    </button>
+                    <button onclick="document.getElementById('comments-${post.id}').style.display = document.getElementById('comments-${post.id}').style.display === 'none' ? 'block' : 'none'" 
+                            style="background:none; border:none; color:gray; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        💬 ${commentsValues.length}
+                    </button>
+                    <button style="background:none; border:none; color:gray; cursor:pointer;" title="Compartir">🔄</button>
+                </div>
+
+                <!-- COMMENTS SECTION -->
+                <div id="comments-${post.id}" style="display:none; margin-top:10px;">
+                    <div style="max-height:200px; overflow-y:auto; margin-bottom:10px;">
+                        ${commentsHtml}
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="comment-input-${post.id}" placeholder="Comentar..." style="flex:1; background:#222; border:none; color:white; padding:5px; border-radius:5px;">
+                        <button onclick="submitComment('${post.id}')" class="btn btn-primary btn-sm">➤</button>
+                    </div>
                 </div>
             `;
             return card;
+        }
+
+        async function toggleLike(postId) {
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            if (!session) return alert("Inicia sesión para interactuar");
+
+            await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: session.username })
+            });
+        }
+
+        async function submitComment(postId) {
+            const session = JSON.parse(localStorage.getItem('magicOshSession'));
+            if (!session) return alert("Inicia sesión");
+
+            const input = document.getElementById('comment-input-' + postId);
+            const text = input.value.trim();
+            if (!text) return;
+
+            await fetch(`/api/posts/${postId}/comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: session.username, text })
+            });
+            input.value = ""; // optimistic clear
         }
 
         function sendDM() {

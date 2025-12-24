@@ -65,7 +65,15 @@ app.post('/api/posts', (req, res) => {
         const posts = getJson(POSTS_FILE);
         if (!Array.isArray(posts)) return res.json({ success: false }); // Safety
 
-        const newPost = { id: Date.now(), username, text, image, timestamp: timestamp || new Date().toISOString() };
+        const newPost = {
+            id: Date.now(),
+            username,
+            text,
+            image,
+            timestamp: timestamp || new Date().toISOString(),
+            likes: [],     // Array of usernames
+            comments: []   // Array of {username, text, timestamp}
+        };
         posts.push(newPost);
         if (posts.length > 100) posts.shift();
         saveJson(POSTS_FILE, posts);
@@ -74,6 +82,45 @@ app.post('/api/posts', (req, res) => {
         io.emit('new_public_post', newPost);
 
         res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// 3. Toggle Like
+app.post('/api/posts/:id/like', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username } = req.body;
+        const posts = getJson(POSTS_FILE);
+        const post = posts.find(p => p.id == id);
+
+        if (post) {
+            if (!post.likes) post.likes = [];
+            const index = post.likes.indexOf(username);
+            if (index === -1) post.likes.push(username);
+            else post.likes.splice(index, 1);
+
+            saveJson(POSTS_FILE, posts);
+            io.emit('post_update', post);
+            res.json({ success: true, likes: post.likes.length });
+        } else { res.status(404).json({ error: "Post not found" }); }
+    } catch (e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// 4. Add Comment
+app.post('/api/posts/:id/comment', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username, text } = req.body;
+        const posts = getJson(POSTS_FILE);
+        const post = posts.find(p => p.id == id);
+
+        if (post) {
+            if (!post.comments) post.comments = [];
+            post.comments.push({ username, text, timestamp: new Date().toISOString() });
+            saveJson(POSTS_FILE, posts);
+            io.emit('post_update', post);
+            res.json({ success: true });
+        } else { res.status(404).json({ error: "Post not found" }); }
     } catch (e) { res.status(500).json({ error: "Failed" }); }
 });
 
@@ -276,7 +323,8 @@ io.on('connection', (socket) => {
             fs.writeFile(path.join(CHAT_LOGS_DIR, fileName), fileContent, () => { });
 
             if (session.currentSocketId) {
-                io.to(session.currentSocketId).emit('admin_response', 'El soporte ha finalizado esta sesión.');
+                // FORCE REFRESH TO CLEAR CLIENT STATE
+                io.to(session.currentSocketId).emit('force_client_refresh');
             }
             io.to('admin_room').emit('chat_closed_confirmed', { socketId: username });
 
