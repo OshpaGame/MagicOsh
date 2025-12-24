@@ -464,8 +464,7 @@
                     </div>
                     <div style="display:flex; gap:10px;">
                         ${!isBin ?
-                        `<button onclick="document.getElementById('code-view-${post.id}').style.display = document.getElementById('code-view-${post.id}').style.display === 'none' ? 'block' : 'none'" 
-                              class="btn btn-sm" style="background:#333; border:1px solid #555; color:white; cursor:pointer;">👁️ Ver</button>`
+                        `<button onclick="toggleCode('${post.id}')" class="btn btn-sm" style="background:#333; border:1px solid #555; color:white; cursor:pointer;">👁️ Ver</button>`
                         : ''}
                         <a href="${post.scriptData.code}" download="${post.scriptData.fileName}" class="btn btn-primary btn-sm" style="text-decoration:none; display:flex; align-items:center;">⬇️</a>
                     </div>
@@ -557,6 +556,13 @@
         function copyCode(id) {
             const code = document.getElementById('code-' + id).innerText;
             navigator.clipboard.writeText(code).then(() => alert("Copiado!"));
+        }
+
+        function toggleCode(id) {
+            const el = document.getElementById('code-view-' + id);
+            if (el) {
+                el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+            }
         }
 
         async function deletePost(id) {
