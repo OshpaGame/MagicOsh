@@ -186,6 +186,10 @@ export const initAuth = () => {
         if (session) {
             profileUsername.textContent = session.username;
             profileEmail.textContent = session.email;
+
+            // Set Avatar Initial
+            const avatarParams = document.getElementById('profileAvatar');
+            if (avatarParams) avatarParams.textContent = session.username.charAt(0).toUpperCase();
             profileDob.textContent = session.dob || 'No especificada';
         }
     }
