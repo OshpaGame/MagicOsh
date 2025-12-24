@@ -420,6 +420,7 @@
             });
 
             // Admin Response (Full HTML support for files)
+            // Admin Response (Full HTML support for files)
             socket.on('admin_file_receive', (data) => {
                 const link = `<div style="display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:2rem;">📎</span>
@@ -433,6 +434,56 @@
                               </div>`;
                 addDmMsg('support', link, true);
             });
+
+            // LIVE FEED SYNC
+            socket.on('new_public_post', (post) => {
+                const container = document.getElementById('feedStream');
+                const card = createPostCard(post);
+                container.prepend(card); // Add to top
+            });
+
+            // LIVE CHAT RESTORE
+            socket.on('chat_restore', (history) => {
+                const box = document.getElementById('dmMessages');
+                box.innerHTML = ""; // Clear initial connecting msg
+                history.forEach(logLine => {
+                    // Log format: "[Time] User: Text"
+                    const parts = logLine.split(']: ');
+                    if (parts.length < 2) return;
+
+                    const content = parts.slice(1).join(']: '); // Rejoin remaining if any
+                    const isSupport = logLine.toLowerCase().includes('soporte');
+
+                    // Simple parsing to detect HTML (files)
+                    const isHtml = content.includes('<div') || content.includes('<a href');
+
+                    addDmMsg(isSupport ? 'support' : 'user', content, isHtml);
+                });
+            });
+        }
+
+        function createPostCard(post) {
+            const card = document.createElement('div');
+            card.className = "post-card";
+            card.style.animation = "fadeIn 0.5s ease-out"; // Nice effect
+
+            let imgHtml = "";
+            if (post.image) imgHtml = `<img src="${post.image}" class="post-image" loading="lazy">`;
+
+            const date = new Date(post.timestamp).toLocaleDateString() + " " + new Date(post.timestamp).toLocaleTimeString();
+
+            card.innerHTML = `
+                <div class="post-avatar">${post.username.charAt(0).toUpperCase()}</div>
+                <div class="post-content">
+                    <div class="post-header">
+                        <span class="username">${post.username}</span>
+                        <span class="handle" style="font-size:0.8rem;">• ${date}</span>
+                    </div>
+                    <div class="post-text">${post.text}</div>
+                    ${imgHtml}
+                </div>
+            `;
+            return card;
         }
 
         function sendDM() {

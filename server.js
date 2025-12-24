@@ -69,6 +69,10 @@ app.post('/api/posts', (req, res) => {
         posts.push(newPost);
         if (posts.length > 100) posts.shift();
         saveJson(POSTS_FILE, posts);
+
+        // LIVE SYNC: Notify all public clients
+        io.emit('new_public_post', newPost);
+
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Failed" }); }
 });
@@ -171,7 +175,9 @@ io.on('connection', (socket) => {
                 activeChats[username].connected = true; // Mark back online
                 activeChats[username].currentSocketId = socket.id; // Update pointer
                 activeChats[username].lastActive = Date.now();
-                // Send history BACK to user? Optional feature.
+
+                // LIVE SYNC: Send History back to User
+                socket.emit('chat_restore', activeChats[username].history);
             }
             saveJson(SESSIONS_FILE, activeChats); // PERSIST
 
