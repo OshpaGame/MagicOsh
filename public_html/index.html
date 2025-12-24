@@ -46,12 +46,12 @@
                 <a href="dashboard.html" id="userMenu" style="display:none;">Mi Dashboard</a>
             </nav>
 
-            <div class="header-actions" style="display: flex; align-items: center; gap: 1rem;">
+            <div class="header-actions">
                 <a href="#store" class="btn btn-primary btn-glow">VER SCRIPTS</a>
                 <a href="login.html" id="btnLogin" class="btn btn-secondary">Login</a>
-                <!-- Fixed Avatar Size -->
+                <!-- Fixed Avatar Size - Critical Fix -->
                 <div id="userAvatar" class="avatar-circle"
-                    style="display:none; cursor:pointer; width: 40px; height: 40px; min-width: 40px; font-size: 1.2rem; align-items: center; justify-content: center; margin: 0;"
+                    style="display:none; cursor:pointer; width: 40px; height: 40px; min-width: 40px; font-size: 1.2rem; align-items: center; justify-content: center; margin-left: 1rem;"
                     onclick="window.location.href='dashboard.html'"></div>
             </div>
         </div>
@@ -68,7 +68,7 @@
             if (session) {
                 if (btnLogin) btnLogin.style.display = 'none';
                 if (userAvatar) {
-                    userAvatar.style.display = 'flex'; // Enable flex for centering text
+                    userAvatar.style.display = 'flex'; // Keep flex for centering
                     userAvatar.textContent = session.username.charAt(0).toUpperCase();
                 }
                 if (userMenu) userMenu.style.display = 'inline-block';
@@ -257,8 +257,7 @@
             const win = document.getElementById('magicOshChatWindow');
             const bubble = document.getElementById('magicOshChatBubble');
 
-            // Check computed style or inline style for opacity
-            // We use a simple toggle logic based on a class or attribute if possible, but style check is safer for fallback
+            // Inline check
             const isVisible = win.style.opacity === '1';
 
             if (isVisible) {
