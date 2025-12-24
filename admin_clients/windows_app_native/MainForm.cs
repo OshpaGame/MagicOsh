@@ -111,7 +111,8 @@ namespace MagicOshAdmin
         private async void InitializeSocket()
         {
             // REPLACE WITH YOUR RENDER URL or Localhost
-            client = new SocketIO("http://localhost:3000");
+            // CONNECT TO LIVE RENDER SERVER
+            client = new SocketIO("https://magicosh-service.onrender.com");
 
             client.OnConnected += async (sender, e) =>
             {

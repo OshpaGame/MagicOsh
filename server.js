@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
         // 1. Send to Admin Apps (Windows & Android)
         // Append socketId so admin knows who to reply to
         const adminPayload = { ...msgData, socketId: socket.id };
-        io.to('admin_windows').to('admin_android').emit('new_message', adminPayload);
+        io.to('admin_windows').to('admin_windows_native').to('admin_android').emit('new_message', adminPayload);
 
         // 2. Optional: Send Email Notification
         // sendNotificationEmail(msgData);
